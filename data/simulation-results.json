@@ -1,0 +1,36 @@
+{
+  "results": [],
+  "schema": {
+    "experiment":  "string — module name",
+    "status":      "string — Completed | Running | Failed | Pending",
+    "metrics":     "object — module-specific key/value pairs",
+    "timestamp":   "ISO 8601 datetime string",
+    "module":      "string — internal module identifier"
+  },
+  "sample": [
+    {
+      "experiment": "CRC Simulation",
+      "module": "crc",
+      "status": "Completed",
+      "metrics": {
+        "dataWord": "110100011",
+        "generator": "1011",
+        "crc": "100",
+        "errorDetected": false
+      },
+      "timestamp": ""
+    },
+    {
+      "experiment": "Sliding Window",
+      "module": "sliding-window",
+      "status": "Completed",
+      "metrics": {
+        "windowSize": 4,
+        "framesSent": 10,
+        "framesAcked": 10,
+        "throughput": "95%"
+      },
+      "timestamp": ""
+    }
+  ]
+}

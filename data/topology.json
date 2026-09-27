@@ -1,0 +1,32 @@
+{
+  "topology": {
+    "name": "SMARTNET Common Topology",
+    "description": "Centralized hypothetical network topology used across all simulation and analysis modules.",
+    "nodes": [
+      { "id": "SERVER", "label": "Server",  "type": "server",  "x": 400, "y": 30  },
+      { "id": "R3",     "label": "R3",      "type": "router",  "x": 400, "y": 120 },
+      { "id": "R1",     "label": "R1",      "type": "router",  "x": 220, "y": 220 },
+      { "id": "R2",     "label": "R2",      "type": "router",  "x": 580, "y": 220 },
+      { "id": "PC1",    "label": "PC1",     "type": "host",    "x": 100, "y": 330 },
+      { "id": "PC2",    "label": "PC2",     "type": "host",    "x": 280, "y": 330 },
+      { "id": "PC3",    "label": "PC3",     "type": "host",    "x": 460, "y": 330 },
+      { "id": "PC4",    "label": "PC4",     "type": "host",    "x": 640, "y": 330 }
+    ],
+    "links": [
+      { "source": "SERVER", "target": "R3",  "bandwidth": "1Gbps",  "cost": 1  },
+      { "source": "R3",     "target": "R1",  "bandwidth": "100Mbps","cost": 2  },
+      { "source": "R3",     "target": "R2",  "bandwidth": "100Mbps","cost": 2  },
+      { "source": "R1",     "target": "PC1", "bandwidth": "10Mbps", "cost": 1  },
+      { "source": "R1",     "target": "PC2", "bandwidth": "10Mbps", "cost": 1  },
+      { "source": "R2",     "target": "PC3", "bandwidth": "10Mbps", "cost": 1  },
+      { "source": "R2",     "target": "PC4", "bandwidth": "10Mbps", "cost": 1  }
+    ],
+    "stats": {
+      "totalNodes": 8,
+      "routers": 3,
+      "hosts": 4,
+      "servers": 1,
+      "totalLinks": 7
+    }
+  }
+}

@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Network Performance Analyzer and Security Testing System — Central Dashboard for simulating protocols, analyzing performance, visualizing routing algorithms, and performing authorized security testing." />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>Dashboard — Network Performance Analyzer & Security Testing System</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+
+  <!-- SMARTNET Global Stylesheet -->
+  <link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+
+<!--
+  data-page="dashboard" is used by navigation.js to highlight the active nav link.
+  Every page MUST set this to its own nav key.
+-->
+<body data-page="dashboard">
+
+  <!-- ═══════════════════════════════════════════════
+       NAVIGATION — injected by navigation.js
+  ════════════════════════════════════════════════════ -->
+  <div id="sn-nav-container"></div>
+
+  <!-- ═══════════════════════════════════════════════
+       HERO / WELCOME SECTION
+  ════════════════════════════════════════════════════ -->
+  <section class="hero-section" id="hero" aria-labelledby="hero-title">
+    <div class="container">
+      <div class="row align-items-center g-4">
+
+        <!-- Left: Content -->
+        <div class="col-lg-7 animate-fade-in-up">
+          <div class="hero-badge">
+            <span class="status-dot"></span>
+            7-Member Academic Project &nbsp;·&nbsp; v1.0
+          </div>
+
+          <h1 class="hero-title" id="hero-title">
+            Network<br/>
+            <span>Performance Analyzer</span>
+          </h1>
+
+          <p class="hero-subtitle">
+            Simulate network protocols, analyze network performance,
+            visualize routing algorithms, test congestion control,
+            and perform authorized security analysis — all in one unified system.
+          </p>
+
+          <div class="hero-actions">
+            <a href="topology.html"
+               class="btn-primary-sn"
+               id="btn-explore-network"
+               aria-label="Explore the network topology">
+              🗺️ Explore Network
+            </a>
+            <a href="simulations.html"
+               class="btn-secondary-sn"
+               id="btn-run-simulation"
+               aria-label="Open the simulation lab">
+              ⚗️ Run Simulation
+            </a>
+          </div>
+        </div>
+
+        <!-- Right: Mini topology preview -->
+        <div class="col-lg-5 animate-fade-in-up animate-delay-2 d-none d-lg-block">
+          <div style="background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--border-radius-xl);padding:var(--space-lg);font-family:var(--font-mono);font-size:0.78rem;color:var(--text-muted);line-height:1.9;">
+            <div style="color:var(--color-accent);margin-bottom:8px;">▶ SMARTNET Topology</div>
+            <div style="text-align:center;line-height:2.2;color:var(--text-secondary);">
+              <div style="color:var(--color-primary);font-weight:700;">🖥️ SERVER</div>
+              <div>│</div>
+              <div style="color:var(--color-accent);font-weight:700;">📡 R3</div>
+              <div>┌────┴────┐</div>
+              <div style="display:flex;justify-content:center;gap:60px;">
+                <span style="color:var(--color-accent);">📡 R1</span>
+                <span style="color:var(--color-accent);">📡 R2</span>
+              </div>
+              <div style="display:flex;justify-content:center;gap:8px;margin-top:4px;">
+                <span style="color:var(--color-warning);font-size:0.7rem;">💻PC1&nbsp;&nbsp;💻PC2</span>
+                <span style="color:var(--color-warning);font-size:0.7rem;">💻PC3&nbsp;&nbsp;💻PC4</span>
+              </div>
+            </div>
+            <div style="margin-top:12px;border-top:1px solid var(--border-color);padding-top:10px;display:flex;gap:16px;">
+              <span>Nodes: <strong style="color:var(--color-primary);">8</strong></span>
+              <span>Links: <strong style="color:var(--color-accent);">7</strong></span>
+              <span>Status: <strong style="color:var(--color-accent);">Online</strong></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <main class="container" id="main-content">
+
+    <!-- ═══════════════════════════════════════════════
+         SYSTEM OVERVIEW STATS
+    ════════════════════════════════════════════════════ -->
+    <section class="section-gap-sm" id="system-overview" aria-labelledby="overview-heading">
+      <div class="section-header animate-fade-in-up">
+        <div class="section-icon" aria-hidden="true">📊</div>
+        <div>
+          <h2 id="overview-heading">System Overview</h2>
+          <p>Key statistics of the Network Performance Analyzer</p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+        <!-- Nodes -->
+        <div class="col-6 col-md-3 animate-fade-in-up animate-delay-1">
+          <div class="stat-card" id="stat-nodes">
+            <div class="stat-number" data-count="8" id="count-nodes">0</div>
+            <div class="stat-label">Network Nodes</div>
+            <div class="stat-sub">PC1–PC4 · R1–R3 · Server</div>
+          </div>
+        </div>
+
+        <!-- Simulations -->
+        <div class="col-6 col-md-3 animate-fade-in-up animate-delay-2">
+          <div class="stat-card" id="stat-simulations">
+            <div class="stat-number" data-count="9" id="count-simulations">0</div>
+            <div class="stat-label">Simulation Modules</div>
+            <div class="stat-sub">Framing to Leaky Bucket</div>
+          </div>
+        </div>
+
+        <!-- Tools -->
+        <div class="col-6 col-md-3 animate-fade-in-up animate-delay-3">
+          <div class="stat-card" id="stat-tools">
+            <div class="stat-number" data-count="3" id="count-tools">0</div>
+            <div class="stat-label">Analysis Tools</div>
+            <div class="stat-sub">Wireshark · Nmap · NS2</div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div class="col-6 col-md-3 animate-fade-in-up animate-delay-4">
+          <div class="stat-card" id="stat-results">
+            <div class="stat-number" style="font-size:1.6rem;padding-top:6px;">✅</div>
+            <div class="stat-label">Results Center</div>
+            <div class="stat-sub">Available</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══════════════════════════════════════════════
+         NETWORK TOPOLOGY OVERVIEW
+    ════════════════════════════════════════════════════ -->
+    <section class="section-gap-sm" id="topology-overview" aria-labelledby="topology-heading">
+      <div class="section-header animate-fade-in-up">
+        <div class="section-icon" aria-hidden="true">🗺️</div>
+        <div>
+          <h2 id="topology-heading">Network Topology</h2>
+          <p>Common organizational network — shared across all modules</p>
+        </div>
+      </div>
+
+      <div class="row g-3 align-items-start">
+        <!-- SVG Topology -->
+        <div class="col-lg-8 animate-fade-in-up animate-delay-1">
+          <div class="topology-container" id="topology-visualization"
+               role="img" aria-label="Interactive network topology diagram showing SERVER, R3, R1, R2, PC1, PC2, PC3, PC4">
+            <svg id="topology-svg" xmlns="http://www.w3.org/2000/svg"
+                 role="img" aria-label="Network topology SVG">
+              <!-- Rendered by app.js via integration.js / topology.json -->
+              <text x="50%" y="50%" text-anchor="middle" fill="var(--text-muted)" font-size="14">
+                Loading topology…
+              </text>
+            </svg>
+          </div>
+          <div class="text-center mt-3">
+            <a href="topology.html"
+               class="btn-outline-sn"
+               id="btn-view-full-topology"
+               aria-label="View full network topology page">
+              🗺️ View Full Topology
+            </a>
+          </div>
+        </div>
+
+        <!-- Topology legend / node list -->
+        <div class="col-lg-4 animate-fade-in-up animate-delay-2">
+          <div class="sn-card">
+            <h4 style="margin-bottom:var(--space-md);font-size:0.95rem;">Node Legend</h4>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:14px;height:14px;border-radius:50%;background:rgba(79,142,247,0.2);border:2px solid var(--color-primary);flex-shrink:0;"></div>
+                <div>
+                  <div style="font-size:0.82rem;font-weight:700;color:var(--text-primary);">Server</div>
+                  <div style="font-size:0.72rem;color:var(--text-muted);">1 node · 1Gbps uplink</div>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:14px;height:14px;border-radius:50%;background:rgba(6,214,160,0.18);border:2px solid var(--color-accent);flex-shrink:0;"></div>
+                <div>
+                  <div style="font-size:0.82rem;font-weight:700;color:var(--text-primary);">Routers (R1, R2, R3)</div>
+                  <div style="font-size:0.72rem;color:var(--text-muted);">3 nodes · 100Mbps inter-router</div>
+                </div>
+              </div>
+
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:14px;height:14px;border-radius:50%;background:rgba(245,158,11,0.18);border:2px solid var(--color-warning);flex-shrink:0;"></div>
+                <div>
+                  <div style="font-size:0.82rem;font-weight:700;color:var(--text-primary);">Hosts (PC1–PC4)</div>
+                  <div style="font-size:0.72rem;color:var(--text-muted);">4 nodes · 10Mbps access</div>
+                </div>
+              </div>
+
+            </div>
+
+            <div style="margin-top:var(--space-md);padding-top:var(--space-md);border-top:1px solid var(--border-color);">
+              <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:6px;">TOPOLOGY STATS</div>
+              <div class="row g-1 text-center" style="font-family:var(--font-mono);">
+                <div class="col-4">
+                  <div style="font-size:1rem;font-weight:700;color:var(--color-primary);">8</div>
+                  <div style="font-size:0.65rem;color:var(--text-muted);">Nodes</div>
+                </div>
+                <div class="col-4">
+                  <div style="font-size:1rem;font-weight:700;color:var(--color-accent);">7</div>
+                  <div style="font-size:0.65rem;color:var(--text-muted);">Links</div>
+                </div>
+                <div class="col-4">
+                  <div style="font-size:1rem;font-weight:700;color:var(--color-warning);">3</div>
+                  <div style="font-size:0.65rem;color:var(--text-muted);">Routers</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══════════════════════════════════════════════
+         SIMULATION LAB
+    ════════════════════════════════════════════════════ -->
+    <section class="section-gap-sm" id="simulation-lab" aria-labelledby="sim-lab-heading">
+      <div class="section-header animate-fade-in-up">
+        <div class="section-icon" aria-hidden="true">⚗️</div>
+        <div>
+          <h2 id="sim-lab-heading">Simulation Lab</h2>
+          <p>9 protocol and algorithm simulation modules</p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+
+        <!-- Framing -->
+        <div class="col-sm-6 col-lg-4 animate-fade-in-up animate-delay-1">
+          <div class="module-card" id="module-card-framing">
+            <div class="module-icon blue" aria-hidden="true">📦</div>
+            <div class="module-title">Framing</div>
+            <div class="module-desc">
+              Simulate data link layer framing techniques — character stuffing,
+              bit stuffing, and frame boundary detection.
+            </div>
+            <div class="module-footer">
+              <span class="sn-badge primary">Data Link</span>
+              <a href="modules/framing/index.html"
+                 class="btn-outline-sn"
+                 id="btn-open-framing"
+                 aria-label="Open Framing simulation module">
+                Open Module →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- CRC Simulation -->
+        <div class="col-sm-6 col-lg-4 animate-fade-in-up animate-delay-2">
+          <div class="module-card" id="module-card-crc">
+            <div class="module-icon green" aria-hidden="true">🔁</div>
+            <div class="module-title">CRC Simulation</div>
+            <div class="module-desc">
+              Cyclic Redundancy Check — error detection through polynomial
+              division, generator selection, and syndrome calculation.
+            </div>
+            <div class="module-footer">
+              <span class="sn-badge success">Error Detection</span>
+              <a href="modules/crc/index.html"
+                 class="btn-outline-sn"
+                 id="btn-open-crc"
+                 aria-label="Open CRC Simulation module">
+                Open Module →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sliding Window -->
+        <div class="col-sm-6 col-lg-4 animate-fade-in-up animate-delay-3">
+          <div class="module-card" id="module-card-sliding-window">
+            <div class="module-icon yellow" aria-hidden="true">🪟</div>
+            <div class="module-title">Sliding Window</div>
+            <div class="module-desc">
+              Simulate sliding window protocol — window size, frame transmission,
+              ACK handling, and throughput analysis.
+            </div>
+            <div class="module-footer">
+              <span class="sn-badge warning">Flow Control</span>
+              <a href="modules/sliding-window/index.html"
+                 class="btn-outline-sn"
+                 id="btn-open-sliding-window"
+                 aria-label="Open Sliding Window module">
+                Open Module →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Go-Back-N -->
+        <div class="col-sm-6 col-lg-4 animate-fade-in-up animate-delay-1">
+          <div class="module-card" id="module-card-go-back-n">
+            <div class="module-icon red" aria-hidden="true">↩️</div>
+            <div class="module-title">Go-Back-N</div>
+            <div class="module-desc">
+              Go-Back-N ARQ protocol — retransmission on error, window management,
+              and frame loss recovery simulation.
+            </div>
+            <div class="module-footer">
+              <span class="sn-badge danger">ARQ Protocol</span>
+              <a href="modules/go-back-n/index.html"
+                 class="btn-outline-sn"
+                 id="btn-open-go-back-n"
+                 aria-label="Open Go-Back-N module">
+                Open Module →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dijkstra -->
+        <div class="col-sm-6 col-lg-4 animate-fade-in-up animate-delay-2">
+          <div class="module-card" id="module-card-dijkstra">
+            <div class="module-icon cyan" aria-hidden="true">🗺️</div>
+            <div class="module-title">Dijkstra</div>
+            <div class="module-desc">
+              Shortest path routing using Dijkstra's algorithm on the common
+              network topology with step-by-step visualization.
+            </div>
+            <div class="module-footer">
+              <span class="sn-badge info">Routing</span>
+              <a href="modules/dijkstra/index.html"
+                 class="btn-outline-sn"
+                 id="btn-open-dijkstra"
+                 aria-label="Open Dijkstra simulation module">
+                Open Module →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Distance Vector -->
+        <div class="col-sm-6 col-lg-4 animate-fade-in-up animate-delay-3">
+          <div class="module-card" id="module-card-distance-vector">
+            <div class="module-icon purple" aria-hidden="true">📡</div>
+            <div class="module-title">Distance Vector</div>
+            <div class="module-desc">
+              Bellman-Ford distance vector routing — routing table updates,
+              convergence, and count-to-infinity problem demonstration.
+            </div>
+            <div class="module-footer">
+              <span class="sn-badge primary">Routing</span>
+              <a href="modules/distance-vector/index.html"
+                 class="btn-outline-sn"
+                 id="btn-open-distance-vector"
+                 aria-label="Open Distance Vector module">
+                Open Module →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Broadcast Tree -->
+        <div class="col-sm-6 col-lg-4 animate-fade-in-up animate-delay-1">
+          <div class="module-card" id="module-card-broadcast-tree">
+            <div class="module-icon green" aria-hidden="true">🌳</div>
+            <div class="module-title">Broadcast Tree</div>
+            <div class="module-desc">
+              Spanning tree construction and broadcast tree visualization
+              using the common topology to prevent loops.
+            </div>
+            <div class="module-footer">
+              <span class="sn-badge success">Broadcast</span>
+              <a href="modules/broadcast-tree/index.html"
+                 class="btn-outline-sn"
+                 id="btn-open-broadcast-tree"
+                 aria-label="Open Broadcast Tree module">
+                Open Module →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Encryption -->
+        <div class="col-sm-6 col-lg-4 animate-fade-in-up animate-delay-2">
+          <div class="module-card" id="module-card-encryption">
+            <div class="module-icon red" aria-hidden="true">🔒</div>
+            <div class="module-title">Encryption</div>
+            <div class="module-desc">
+              Network layer encryption simulation — symmetric, asymmetric,
+              and hashing techniques for secure data transmission.
+            </div>
+            <div class="module-footer">
+              <span class="sn-badge danger">Security</span>
+              <a href="modules/encryption/index.html"
+                 class="btn-outline-sn"
+                 id="btn-open-encryption"
+                 aria-label="Open Encryption module">
+                Open Module →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leaky Bucket -->
+        <div class="col-sm-6 col-lg-4 animate-fade-in-up animate-delay-3">
+          <div class="module-card" id="module-card-leaky-bucket">
+            <div class="module-icon blue" aria-hidden="true">🪣</div>
+            <div class="module-title">Leaky Bucket</div>
+            <div class="module-desc">
+              Traffic shaping and congestion control using the leaky bucket
+              algorithm — packet rate regulation and overflow handling.
+            </div>
+            <div class="module-footer">
+              <span class="sn-badge primary">Congestion</span>
+              <a href="modules/leaky-bucket/index.html"
+                 class="btn-outline-sn"
+                 id="btn-open-leaky-bucket"
+                 aria-label="Open Leaky Bucket module">
+                Open Module →
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /row -->
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══════════════════════════════════════════════
+         ANALYSIS TOOLS
+    ════════════════════════════════════════════════════ -->
+    <section class="section-gap-sm" id="analysis-tools" aria-labelledby="analysis-heading">
+      <div class="section-header animate-fade-in-up">
+        <div class="section-icon" aria-hidden="true">🔬</div>
+        <div>
+          <h2 id="analysis-heading">Analysis Tools</h2>
+          <p>Network packet analysis, host discovery, and performance simulation</p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+
+        <!-- Wireshark -->
+        <div class="col-md-4 animate-fade-in-up animate-delay-1">
+          <div class="module-card" id="module-card-wireshark">
+            <div class="module-icon cyan" aria-hidden="true">🦈</div>
+            <div class="module-title">Wireshark</div>
+            <div class="module-desc">
+              Packet capture, protocol analysis, TCP/UDP statistics,
+              and network performance analysis using captured trace data.
+            </div>
+            <div class="module-footer">
+              <span class="sn-badge info">Packet Analysis</span>
+              <a href="tools/wireshark/index.html"
+                 class="btn-outline-sn"
+                 id="btn-open-wireshark"
+                 aria-label="Open Wireshark analysis tool">
+                Open Tool →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Nmap -->
+        <div class="col-md-4 animate-fade-in-up animate-delay-2">
+          <div class="module-card" id="module-card-nmap">
+            <div class="module-icon yellow" aria-hidden="true">🔍</div>
+            <div class="module-title">Nmap</div>
+            <div class="module-desc">
+              Authorized host discovery, OS detection, and service/port
+              analysis. Use only on systems with explicit permission.
+            </div>
+            <div class="module-footer">
+              <span class="sn-badge warning">Authorized Only</span>
+              <a href="tools/nmap/index.html"
+                 class="btn-outline-sn"
+                 id="btn-open-nmap"
+                 aria-label="Open Nmap analysis tool">
+                Open Tool →
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- NS2 -->
+        <div class="col-md-4 animate-fade-in-up animate-delay-3">
+          <div class="module-card" id="module-card-ns2">
+            <div class="module-icon purple" aria-hidden="true">📈</div>
+            <div class="module-title">NS2</div>
+            <div class="module-desc">
+              Analyze TCP/UDP behavior, packet drops, congestion, throughput,
+              data rate, and delay using NS2 simulation trace results.
+            </div>
+            <div class="module-footer">
+              <span class="sn-badge primary">Simulation</span>
+              <a href="tools/ns2/index.html"
+                 class="btn-outline-sn"
+                 id="btn-open-ns2"
+                 aria-label="Open NS2 analysis tool">
+                Open Tool →
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══════════════════════════════════════════════
+         SECURITY OVERVIEW
+    ════════════════════════════════════════════════════ -->
+    <section class="section-gap-sm" id="security-overview" aria-labelledby="security-heading">
+      <div class="section-header animate-fade-in-up">
+        <div class="section-icon" aria-hidden="true">🔐</div>
+        <div>
+          <h2 id="security-heading">Security</h2>
+          <p>Encryption and authorized security analysis modules</p>
+        </div>
+      </div>
+
+      <div class="row g-3 align-items-start">
+
+        <!-- Security modules list -->
+        <div class="col-lg-8 animate-fade-in-up animate-delay-1">
+          <div class="row g-3">
+
+            <div class="col-sm-4">
+              <div class="sn-card text-center">
+                <div class="sn-card-icon blue mx-auto" style="margin-bottom:var(--space-sm);" aria-hidden="true">🔒</div>
+                <div style="font-weight:700;font-size:0.9rem;color:var(--text-primary);margin-bottom:4px;">Encryption</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:var(--space-md);">Data security simulation</div>
+                <a href="modules/encryption/index.html"
+                   class="btn-outline-sn"
+                   id="btn-security-encryption"
+                   style="width:100%;justify-content:center;"
+                   aria-label="Open Encryption module">Open →</a>
+              </div>
+            </div>
+
+            <div class="col-sm-4">
+              <div class="sn-card text-center">
+                <div class="sn-card-icon yellow mx-auto" style="margin-bottom:var(--space-sm);" aria-hidden="true">🔍</div>
+                <div style="font-weight:700;font-size:0.9rem;color:var(--text-primary);margin-bottom:4px;">Nmap</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:var(--space-md);">Authorized host scanning</div>
+                <a href="tools/nmap/index.html"
+                   class="btn-outline-sn"
+                   id="btn-security-nmap"
+                   style="width:100%;justify-content:center;"
+                   aria-label="Open Nmap tool">Open →</a>
+              </div>
+            </div>
+
+            <div class="col-sm-4">
+              <div class="sn-card text-center">
+                <div class="sn-card-icon green mx-auto" style="margin-bottom:var(--space-sm);" aria-hidden="true">🛡️</div>
+                <div style="font-weight:700;font-size:0.9rem;color:var(--text-primary);margin-bottom:4px;">Security Testing</div>
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:var(--space-md);">Authorized analysis only</div>
+                <span class="sn-badge success" style="display:inline-flex;justify-content:center;width:100%;padding:7px 0;">
+                  ✅ Authorized
+                </span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Security notice -->
+        <div class="col-lg-4 animate-fade-in-up animate-delay-2">
+          <div class="security-notice" role="alert" aria-label="Security authorization notice">
+            <div class="notice-icon" aria-hidden="true">⚠️</div>
+            <p>
+              <strong style="color:var(--color-warning);">Authorized Use Only</strong><br/>
+              Security testing must only be performed on systems and networks
+              for which explicit permission has been obtained.
+              The Nmap and Encryption modules are provided for
+              educational and authorized analysis purposes only.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══════════════════════════════════════════════
+         NETWORK PERFORMANCE METRICS
+    ════════════════════════════════════════════════════ -->
+    <section class="section-gap-sm" id="network-performance" aria-labelledby="perf-heading">
+      <div class="section-header animate-fade-in-up">
+        <div class="section-icon" aria-hidden="true">📉</div>
+        <div>
+          <h2 id="perf-heading">Network Performance</h2>
+          <p>
+            Summary metrics from simulations &nbsp;·&nbsp;
+            <span class="sn-badge muted" style="vertical-align:middle;">No simulation data</span>
+          </p>
+        </div>
+      </div>
+
+      <div class="row g-3">
+
+        <div class="col-sm-6 col-lg animate-fade-in-up animate-delay-1">
+          <div class="metric-card" id="metric-packet-loss">
+            <div class="metric-icon blue" aria-hidden="true">📦</div>
+            <div class="metric-info">
+              <div class="metric-name">Packet Loss</div>
+              <div class="metric-value" id="metric-packet-loss-val">—
+                <span class="metric-unit">%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-lg animate-fade-in-up animate-delay-2">
+          <div class="metric-card" id="metric-throughput">
+            <div class="metric-icon green" aria-hidden="true">⚡</div>
+            <div class="metric-info">
+              <div class="metric-name">Throughput</div>
+              <div class="metric-value" id="metric-throughput-val">—
+                <span class="metric-unit">Mbps</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-lg animate-fade-in-up animate-delay-3">
+          <div class="metric-card" id="metric-data-rate">
+            <div class="metric-icon yellow" aria-hidden="true">📡</div>
+            <div class="metric-info">
+              <div class="metric-name">Data Rate</div>
+              <div class="metric-value" id="metric-data-rate-val">—
+                <span class="metric-unit">kbps</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-lg animate-fade-in-up animate-delay-4">
+          <div class="metric-card" id="metric-delay">
+            <div class="metric-icon red" aria-hidden="true">⏱️</div>
+            <div class="metric-info">
+              <div class="metric-name">Delay</div>
+              <div class="metric-value" id="metric-delay-val">—
+                <span class="metric-unit">ms</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-sm-6 col-lg animate-fade-in-up animate-delay-1">
+          <div class="metric-card" id="metric-tcp-udp">
+            <div class="metric-icon purple" aria-hidden="true">🔗</div>
+            <div class="metric-info">
+              <div class="metric-name">TCP/UDP Analysis</div>
+              <div class="metric-value" id="metric-tcp-udp-val" style="font-size:0.8rem;">
+                Pending
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <p class="text-center mt-3" style="font-size:0.78rem;color:var(--text-muted);">
+        Metrics will update automatically after running simulations.
+        Values shown are from the integration layer — not fabricated data.
+      </p>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══════════════════════════════════════════════
+         RECENT RESULTS
+    ════════════════════════════════════════════════════ -->
+    <section class="section-gap-sm" id="recent-results" aria-labelledby="results-heading">
+      <div class="section-header animate-fade-in-up" style="justify-content:space-between;flex-wrap:wrap;gap:12px;">
+        <div style="display:flex;align-items:center;gap:var(--space-md);">
+          <div class="section-icon" aria-hidden="true">📋</div>
+          <div>
+            <h2 id="results-heading">Recent Results</h2>
+            <p>Latest simulation and analysis experiment results</p>
+          </div>
+        </div>
+        <a href="results.html"
+           class="btn-secondary-sn"
+           id="btn-view-all-results"
+           aria-label="View all results">
+          View All Results →
+        </a>
+      </div>
+
+      <div class="sn-card animate-fade-in-up animate-delay-1" style="padding:0;overflow:hidden;">
+        <!-- Table -->
+        <div class="table-responsive">
+          <table class="sn-table" id="results-table" aria-label="Recent simulation results">
+            <thead>
+              <tr>
+                <th scope="col">Experiment</th>
+                <th scope="col">Status</th>
+                <th scope="col">Key Metrics</th>
+                <th scope="col">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody id="results-tbody">
+              <!-- Populated by app.js via integration.js -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Empty state (shown by app.js when no results) -->
+        <div class="results-empty" id="results-empty" style="display:none;">
+          <div class="empty-icon" aria-hidden="true">📭</div>
+          <p>No simulation results available yet.</p>
+          <p style="font-size:0.78rem;">Run a simulation module to see results here.</p>
+        </div>
+      </div>
+    </section>
+
+    <div class="section-divider"></div>
+
+    <!-- ═══════════════════════════════════════════════
+         QUICK ACTIONS
+    ════════════════════════════════════════════════════ -->
+    <section class="section-gap-sm" id="quick-actions" aria-labelledby="actions-heading">
+      <div class="section-header animate-fade-in-up">
+        <div class="section-icon" aria-hidden="true">⚡</div>
+        <div>
+          <h2 id="actions-heading">Quick Actions</h2>
+          <p>Navigate directly to any module</p>
+        </div>
+      </div>
+
+      <div class="d-flex flex-wrap gap-2 animate-fade-in-up animate-delay-1">
+        <a href="modules/crc/index.html"          class="quick-action-btn" id="qa-crc"            aria-label="Run CRC Simulation">🔁 Run CRC</a>
+        <a href="modules/dijkstra/index.html"     class="quick-action-btn" id="qa-dijkstra"       aria-label="Run Dijkstra">🗺️ Run Dijkstra</a>
+        <a href="modules/sliding-window/index.html" class="quick-action-btn" id="qa-sliding-window" aria-label="Run Sliding Window">🪟 Run Sliding Window</a>
+        <a href="modules/go-back-n/index.html"    class="quick-action-btn" id="qa-go-back-n"      aria-label="Run Go-Back-N">↩️ Run Go-Back-N</a>
+        <a href="modules/leaky-bucket/index.html" class="quick-action-btn" id="qa-leaky-bucket"   aria-label="Run Leaky Bucket">🪣 Run Leaky Bucket</a>
+        <a href="modules/framing/index.html"      class="quick-action-btn" id="qa-framing"        aria-label="Open Framing">📦 Open Framing</a>
+        <a href="modules/distance-vector/index.html" class="quick-action-btn" id="qa-distance-vector" aria-label="Distance Vector">📡 Distance Vector</a>
+        <a href="modules/broadcast-tree/index.html"  class="quick-action-btn" id="qa-broadcast-tree"  aria-label="Broadcast Tree">🌳 Broadcast Tree</a>
+        <a href="modules/encryption/index.html"   class="quick-action-btn" id="qa-encryption"     aria-label="Open Encryption">🔒 Encryption</a>
+        <a href="topology.html"                   class="quick-action-btn" id="qa-topology"        aria-label="Open Topology">🗺️ Open Topology</a>
+        <a href="results.html"                    class="quick-action-btn" id="qa-results"         aria-label="Open Results">📋 Open Results</a>
+        <a href="tools/wireshark/index.html"      class="quick-action-btn" id="qa-wireshark"       aria-label="Open Wireshark">🦈 Wireshark</a>
+        <a href="tools/nmap/index.html"           class="quick-action-btn" id="qa-nmap"            aria-label="Open Nmap">🔍 Nmap</a>
+        <a href="tools/ns2/index.html"            class="quick-action-btn" id="qa-ns2"             aria-label="Open NS2">📈 NS2</a>
+      </div>
+    </section>
+
+  </main><!-- /main -->
+
+  <!-- ═══════════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════════════ -->
+  <footer class="sn-footer" id="sn-footer" role="contentinfo">
+    <div class="container">
+      <div class="row g-4">
+
+        <!-- Brand -->
+        <div class="col-md-4">
+          <div class="footer-brand">
+            <div class="brand-icon" aria-hidden="true">🌐</div>
+            <span>SMARTNET</span>
+          </div>
+          <p>
+            Network Performance Analyzer &amp;<br/>
+            Security Testing System
+          </p>
+          <p style="margin-top:8px;">7-Member Academic Project</p>
+        </div>
+
+        <!-- Modules -->
+        <div class="col-md-4">
+          <div style="font-size:0.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">
+            Simulation Modules
+          </div>
+          <ul class="footer-links">
+            <li><a href="modules/framing/index.html"         id="footer-link-framing">📦 Framing</a></li>
+            <li><a href="modules/crc/index.html"             id="footer-link-crc">🔁 CRC Simulation</a></li>
+            <li><a href="modules/sliding-window/index.html"  id="footer-link-sliding-window">🪟 Sliding Window</a></li>
+            <li><a href="modules/go-back-n/index.html"       id="footer-link-go-back-n">↩️ Go-Back-N</a></li>
+            <li><a href="modules/dijkstra/index.html"        id="footer-link-dijkstra">🗺️ Dijkstra</a></li>
+            <li><a href="modules/leaky-bucket/index.html"    id="footer-link-leaky-bucket">🪣 Leaky Bucket</a></li>
+          </ul>
+        </div>
+
+        <!-- Tools & Links -->
+        <div class="col-md-4">
+          <div style="font-size:0.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">
+            Analysis &amp; Tools
+          </div>
+          <ul class="footer-links">
+            <li><a href="tools/wireshark/index.html" id="footer-link-wireshark">🦈 Wireshark</a></li>
+            <li><a href="tools/nmap/index.html"      id="footer-link-nmap">🔍 Nmap</a></li>
+            <li><a href="tools/ns2/index.html"       id="footer-link-ns2">📈 NS2</a></li>
+            <li><a href="topology.html"              id="footer-link-topology">🗺️ Topology</a></li>
+            <li><a href="results.html"               id="footer-link-results">📋 Results</a></li>
+            <li><a href="about.html"                 id="footer-link-about">ℹ️ About</a></li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Footer bottom -->
+      <div class="footer-bottom">
+        <p>© 2024 Network Performance Analyzer &amp; Security Testing System · 7-Member Academic Project</p>
+        <p style="color:var(--color-primary);">Integration Lead: Member 1</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════
+       Scripts
+  ═══════════════════════════════════════════ -->
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+          crossorigin="anonymous"></script>
+
+  <!-- SMARTNET Shared Layers (load order matters) -->
+  <script src="../assets/js/navigation.js"></script>
+  <script src="../assets/js/integration.js"></script>
+
+  <!-- Dashboard-specific logic -->
+  <script src="../assets/js/app.js"></script>
+
+</body>
+</html>
