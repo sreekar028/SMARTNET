@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="CRC Simulation — Cyclic Redundancy Check error-detection simulation with step-by-step modulo-2 binary division visualization." />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>CRC Simulation — SMARTNET</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+
+  <!-- SMARTNET Global Stylesheet -->
+  <link rel="stylesheet" href="../../../assets/css/style.css" />
+
+  <!-- Module-specific styles (scoped) -->
+  <style>
+    /* ── CRC Module Scoped Styles ─────────────────────────── */
+    .crc-input-section .form-control {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      border-radius: var(--border-radius-sm);
+      padding: 10px 14px;
+      transition: var(--transition-fast);
+    }
+    .crc-input-section .form-control:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
+      background: var(--bg-input);
+      color: var(--text-primary);
+    }
+    .crc-input-section .form-control::placeholder {
+      color: var(--text-muted);
+    }
+    .crc-input-section label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .crc-input-section .invalid-feedback {
+      font-size: 0.78rem;
+      color: var(--color-danger);
+    }
+
+    /* Division step display */
+    .crc-division-steps {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--space-lg);
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      overflow-x: auto;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .crc-step {
+      margin-bottom: var(--space-md);
+      padding-bottom: var(--space-md);
+      border-bottom: 1px solid rgba(30,58,95,0.4);
+      animation: fadeInUp 0.3s ease both;
+    }
+    .crc-step:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    .crc-step-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+    }
+    .crc-step-row {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      margin-bottom: 2px;
+      line-height: 1.8;
+    }
+    .crc-bit {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 26px;
+      font-weight: 600;
+      border-radius: 3px;
+      font-size: 0.82rem;
+    }
+    .crc-bit-data {
+      color: var(--text-primary);
+    }
+    .crc-bit-xor {
+      color: var(--color-primary);
+    }
+    .crc-bit-result {
+      color: var(--color-accent);
+    }
+    .crc-bit-remainder {
+      color: var(--color-warning);
+      background: rgba(245,158,11,0.12);
+    }
+    .crc-divider-line {
+      height: 1px;
+      background: var(--border-color-light);
+      margin: 4px 0;
+    }
+
+    /* Codeword highlight */
+    .crc-codeword {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      letter-spacing: 1px;
+      word-break: break-all;
+    }
+    .crc-codeword .cw-data {
+      color: var(--color-primary);
+    }
+    .crc-codeword .cw-crc {
+      color: var(--color-accent);
+      border-bottom: 2px solid var(--color-accent);
+    }
+
+    /* Verification result */
+    .crc-verify-result {
+      padding: var(--space-md);
+      border-radius: var(--border-radius);
+      font-weight: 600;
+      font-size: 0.92rem;
+      text-align: center;
+      margin-top: var(--space-md);
+    }
+    .crc-verify-result.valid {
+      background: rgba(6,214,160,0.12);
+      border: 1px solid rgba(6,214,160,0.35);
+      color: var(--color-accent);
+    }
+    .crc-verify-result.invalid {
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.35);
+      color: var(--color-danger);
+    }
+
+    /* Tab-like section switch */
+    .crc-mode-tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 4px;
+      margin-bottom: var(--space-lg);
+    }
+    .crc-mode-tab {
+      flex: 1;
+      text-align: center;
+      padding: 8px 16px;
+      border-radius: var(--border-radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition-fast);
+      border: none;
+      background: transparent;
+    }
+    .crc-mode-tab:hover {
+      color: var(--text-secondary);
+      background: rgba(79,142,247,0.06);
+    }
+    .crc-mode-tab.active {
+      color: var(--text-primary);
+      background: var(--bg-card);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Animation delays */
+    .crc-step:nth-child(1) { animation-delay: 0.02s; }
+    .crc-step:nth-child(2) { animation-delay: 0.06s; }
+    .crc-step:nth-child(3) { animation-delay: 0.10s; }
+    .crc-step:nth-child(4) { animation-delay: 0.14s; }
+    .crc-step:nth-child(5) { animation-delay: 0.18s; }
+    .crc-step:nth-child(6) { animation-delay: 0.22s; }
+    .crc-step:nth-child(7) { animation-delay: 0.26s; }
+    .crc-step:nth-child(8) { animation-delay: 0.30s; }
+    .crc-step:nth-child(9) { animation-delay: 0.34s; }
+    .crc-step:nth-child(10) { animation-delay: 0.38s; }
+  </style>
+</head>
+
+<!--
+  data-page="crc" — matches the nav key in navigation.js
+-->
+<body data-page="crc">
+
+  <!-- ═══════════════════════════════════════════════
+       NAVIGATION — injected by navigation.js
+  ════════════════════════════════════════════════════ -->
+  <div id="sn-nav-container"></div>
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE HEADER
+  ════════════════════════════════════════════════════ -->
+  <section class="section-gap-sm" style="background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-base) 100%); position: relative; overflow: hidden;">
+    <div style="position:absolute;top:-30%;right:-10%;width:40%;height:160%;background:radial-gradient(ellipse,rgba(6,214,160,0.06) 0%,transparent 70%);pointer-events:none;"></div>
+    <div class="container">
+      <div class="animate-fade-in-up">
+        <a href="../../pages/dashboard.html" class="btn-secondary-sn" style="padding:6px 14px;font-size:0.78rem;margin-bottom:var(--space-lg);display:inline-flex;" id="btn-back-simulations">
+          ← Back to Dashboard
+        </a>
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="sn-card-icon green" style="width:52px;height:52px;font-size:1.4rem;">🔁</div>
+          <div>
+            <h1 style="font-size:clamp(1.4rem,3vw,2rem);margin:0;" id="page-title">CRC Simulation</h1>
+            <p style="margin:4px 0 0;font-size:0.88rem;color:var(--text-secondary);">Cyclic Redundancy Check · Error Detection</p>
+          </div>
+        </div>
+        <p style="max-width:700px;font-size:0.92rem;line-height:1.7;color:var(--text-secondary);">
+          <strong style="color:var(--text-primary);">Cyclic Redundancy Check (CRC)</strong> is an error-detection technique
+          widely used in digital networks and storage. The sender divides the data by a
+          <strong style="color:var(--color-primary);">generator polynomial</strong> using modulo-2 binary division.
+          The remainder is appended to the data as the CRC value. The receiver performs the same division on
+          the received codeword — a <strong style="color:var(--color-accent);">zero remainder</strong> means no error was detected.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════════════════════ -->
+  <section class="section-gap-sm">
+    <div class="container">
+
+      <!-- Mode Tabs -->
+      <div class="crc-mode-tabs animate-fade-in-up" id="crc-mode-tabs">
+        <button class="crc-mode-tab active" data-mode="calculate" id="crc-tab-calculate">
+          🧮 Calculate CRC
+        </button>
+        <button class="crc-mode-tab" data-mode="verify" id="crc-tab-verify">
+          ✅ Verify Codeword
+        </button>
+      </div>
+
+      <div class="row g-4">
+
+        <!-- ── LEFT: Input Panel ──────────────────────── -->
+        <div class="col-lg-5">
+
+          <!-- Calculate Mode Input -->
+          <div class="sn-card crc-input-section animate-fade-in-up" id="crc-calc-input-card">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span style="font-size:1.1rem;">⚙️</span>
+              <h3 style="font-size:1rem;margin:0;color:var(--text-primary);">CRC Configuration</h3>
+            </div>
+
+            <div class="mb-3">
+              <label for="crc-data-input" class="form-label">Data Bits</label>
+              <input type="text" class="form-control" id="crc-data-input"
+                     placeholder="e.g. 1101011011"
+                     autocomplete="off" spellcheck="false" />
+              <div class="invalid-feedback" id="crc-data-error"></div>
+              <div class="form-text" style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;">
+                Enter binary data (0s and 1s only).
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="crc-generator-input" class="form-label">Generator Polynomial</label>
+              <input type="text" class="form-control" id="crc-generator-input"
+                     placeholder="e.g. 10011"
+                     autocomplete="off" spellcheck="false" />
+              <div class="invalid-feedback" id="crc-generator-error"></div>
+              <div class="form-text" style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;">
+                Binary generator (must start with 1 and have ≥ 2 digits).
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn-primary-sn" id="btn-calculate-crc" type="button">
+                🧮 Calculate CRC
+              </button>
+              <button class="btn-secondary-sn" id="btn-reset-crc" type="button">
+                ↺ Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Verify Mode Input -->
+          <div class="sn-card crc-input-section animate-fade-in-up" id="crc-verify-input-card" style="display:none;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span style="font-size:1.1rem;">✅</span>
+              <h3 style="font-size:1rem;margin:0;color:var(--text-primary);">Verify Codeword</h3>
+            </div>
+
+            <div class="mb-3">
+              <label for="crc-verify-codeword" class="form-label">Received Codeword</label>
+              <input type="text" class="form-control" id="crc-verify-codeword"
+                     placeholder="e.g. 11010110111110"
+                     autocomplete="off" spellcheck="false" />
+              <div class="invalid-feedback" id="crc-verify-codeword-error"></div>
+            </div>
+
+            <div class="mb-3">
+              <label for="crc-verify-generator" class="form-label">Generator Polynomial</label>
+              <input type="text" class="form-control" id="crc-verify-generator"
+                     placeholder="e.g. 10011"
+                     autocomplete="off" spellcheck="false" />
+              <div class="invalid-feedback" id="crc-verify-generator-error"></div>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn-accent-sn" id="btn-verify-crc" type="button">
+                ✅ Verify
+              </button>
+              <button class="btn-secondary-sn" id="btn-reset-verify" type="button">
+                ↺ Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Info Card -->
+          <div class="sn-card animate-fade-in-up animate-delay-2 mt-3" id="crc-info-card">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span style="font-size:1rem;">📘</span>
+              <h4 style="font-size:0.9rem;margin:0;color:var(--text-primary);">Algorithm Steps</h4>
+            </div>
+            <div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.7;">
+              <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">
+                <span class="sn-badge primary" style="flex-shrink:0;">1</span>
+                <span>Append <strong>(n−1)</strong> zeros to the data, where <strong>n</strong> is the generator length.</span>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">
+                <span class="sn-badge primary" style="flex-shrink:0;">2</span>
+                <span>Perform <strong>modulo-2 binary division</strong> of the appended data by the generator.</span>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">
+                <span class="sn-badge primary" style="flex-shrink:0;">3</span>
+                <span>The <strong>remainder</strong> is the CRC value.</span>
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:8px;">
+                <span class="sn-badge primary" style="flex-shrink:0;">4</span>
+                <span>The <strong>transmitted codeword</strong> = original data + CRC remainder.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── RIGHT: Visualization & Results ─────────── -->
+        <div class="col-lg-7">
+
+          <!-- Output Card -->
+          <div class="sn-card animate-fade-in-up animate-delay-1" id="crc-output-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div class="d-flex align-items-center gap-2">
+                <span style="font-size:1.1rem;">📊</span>
+                <h3 style="font-size:1rem;margin:0;color:var(--text-primary);" id="crc-output-title">Calculation Output</h3>
+              </div>
+              <span class="sn-badge muted" id="crc-status-badge">Waiting</span>
+            </div>
+
+            <!-- Empty State -->
+            <div id="crc-empty-state" class="results-empty" style="padding:var(--space-xl) var(--space-md);">
+              <div class="empty-icon">🔁</div>
+              <p>Enter data bits and a generator polynomial to begin.</p>
+            </div>
+
+            <!-- Calculate Output -->
+            <div id="crc-calc-output" style="display:none;">
+
+              <!-- Appended Data -->
+              <div style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:var(--space-md);margin-bottom:var(--space-md);">
+                <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Appended Data (Data + Zeros)</div>
+                <div style="font-family:var(--font-mono);font-size:0.92rem;word-break:break-all;" id="crc-appended-data"></div>
+              </div>
+
+              <!-- Division Steps -->
+              <div style="margin-bottom:var(--space-md);">
+                <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Modulo-2 Division Steps</div>
+                <div class="crc-division-steps" id="crc-division-steps"></div>
+              </div>
+
+              <!-- Remainder & Codeword -->
+              <div class="row g-3">
+                <div class="col-sm-6">
+                  <div style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:var(--space-md);">
+                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">CRC Remainder</div>
+                    <div style="font-family:var(--font-mono);font-size:1.1rem;font-weight:700;color:var(--color-warning);" id="crc-remainder-display"></div>
+                  </div>
+                </div>
+                <div class="col-sm-6">
+                  <div style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:var(--space-md);">
+                    <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Transmitted Codeword</div>
+                    <div class="crc-codeword" id="crc-codeword-display"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Verify Output -->
+            <div id="crc-verify-output" style="display:none;">
+              <div style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:var(--space-md);margin-bottom:var(--space-md);">
+                <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Received Codeword</div>
+                <div style="font-family:var(--font-mono);font-size:0.92rem;word-break:break-all;color:var(--text-primary);" id="crc-verify-received"></div>
+              </div>
+
+              <div style="margin-bottom:var(--space-md);">
+                <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Division Steps</div>
+                <div class="crc-division-steps" id="crc-verify-steps"></div>
+              </div>
+
+              <div style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:var(--space-md);">
+                <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Remainder</div>
+                <div style="font-family:var(--font-mono);font-size:1.1rem;font-weight:700;" id="crc-verify-remainder"></div>
+              </div>
+
+              <div id="crc-verify-verdict"></div>
+            </div>
+          </div>
+
+          <!-- Results Summary -->
+          <div class="sn-card animate-fade-in-up animate-delay-3 mt-3" id="crc-results-card" style="display:none;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span style="font-size:1.1rem;">📋</span>
+              <h3 style="font-size:1rem;margin:0;color:var(--text-primary);">Results Summary</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="sn-table" id="crc-results-table">
+                <tbody>
+                  <tr><td style="font-weight:600;color:var(--text-muted);width:40%;">Status</td><td id="res-crc-status"></td></tr>
+                  <tr><td style="font-weight:600;color:var(--text-muted);">Original Data</td><td id="res-crc-data" style="font-family:var(--font-mono);word-break:break-all;"></td></tr>
+                  <tr><td style="font-weight:600;color:var(--text-muted);">Generator</td><td id="res-crc-generator" style="font-family:var(--font-mono);"></td></tr>
+                  <tr><td style="font-weight:600;color:var(--text-muted);">Appended Data</td><td id="res-crc-appended" style="font-family:var(--font-mono);word-break:break-all;"></td></tr>
+                  <tr><td style="font-weight:600;color:var(--text-muted);">CRC Remainder</td><td id="res-crc-remainder" style="font-family:var(--font-mono);color:var(--color-warning);font-weight:700;"></td></tr>
+                  <tr><td style="font-weight:600;color:var(--text-muted);">Transmitted Codeword</td><td id="res-crc-codeword" style="font-family:var(--font-mono);word-break:break-all;"></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div><!-- /row -->
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════════════ -->
+  <footer class="sn-footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top:none;margin-top:0;padding-top:0;">
+        <p>© 2024 SMARTNET — Network Performance Analyzer &amp; Security Testing System</p>
+        <p style="color:var(--text-muted);">Member 2 · CRC Simulation Module</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════
+       Scripts
+  ═══════════════════════════════════════════ -->
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+          crossorigin="anonymous"></script>
+
+  <!-- SMARTNET Shared Layers (load order matters) -->
+  <script src="../../../assets/js/navigation.js"></script>
+  <script src="../../../assets/js/integration.js"></script>
+
+  <!-- CRC module logic -->
+  <script src="../../../assets/js/modules/crc.js"></script>
+
+</body>
+</html>
