@@ -15,7 +15,8 @@
  *   SMARTNET.Integration.onResult(fn)    → subscribe to new results
  */
 
-const SMARTNET = window.SMARTNET || {};
+/* Use var to avoid SyntaxError when navigation.js already declared SMARTNET with const */
+var SMARTNET = window.SMARTNET || {};
 
 SMARTNET.Integration = (function () {
   'use strict';

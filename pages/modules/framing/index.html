@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Framing Simulation — Data Link Layer framing techniques including Character Count, Byte Stuffing, and Bit Stuffing." />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>Framing Simulation — SMARTNET</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+
+  <!-- SMARTNET Global Stylesheet -->
+  <link rel="stylesheet" href="../../../assets/css/style.css" />
+
+  <!-- Module-specific styles (scoped) -->
+  <style>
+    /* ── Framing Module Scoped Styles ─────────────────────── */
+    .framing-frame-block {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--space-md);
+      margin-bottom: var(--space-md);
+      transition: var(--transition-normal);
+      animation: fadeInUp 0.4s ease both;
+    }
+    .framing-frame-block:hover {
+      border-color: var(--border-color-light);
+      background: var(--bg-card-hover);
+    }
+    .framing-frame-diagram {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2px;
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+    }
+    .framing-frame-diagram .frame-segment {
+      padding: 8px 14px;
+      border-radius: var(--border-radius-sm);
+      font-weight: 600;
+      text-align: center;
+      min-width: 60px;
+      transition: var(--transition-fast);
+    }
+    .framing-frame-diagram .frame-segment:hover {
+      transform: translateY(-2px);
+    }
+    .frame-seg-header {
+      background: rgba(79,142,247,0.18);
+      color: var(--color-primary);
+      border: 1px solid rgba(79,142,247,0.35);
+    }
+    .frame-seg-data {
+      background: rgba(6,214,160,0.12);
+      color: var(--color-accent);
+      border: 1px solid rgba(6,214,160,0.3);
+    }
+    .frame-seg-flag {
+      background: rgba(245,158,11,0.15);
+      color: var(--color-warning);
+      border: 1px solid rgba(245,158,11,0.35);
+    }
+    .frame-seg-stuffed {
+      background: rgba(239,68,68,0.12);
+      color: var(--color-danger);
+      border: 1px solid rgba(239,68,68,0.3);
+    }
+    .frame-seg-esc {
+      background: rgba(168,85,247,0.15);
+      color: #a855f7;
+      border: 1px solid rgba(168,85,247,0.3);
+    }
+    .framing-flow-arrow {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      padding: var(--space-sm) 0;
+    }
+    .framing-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-md);
+      padding: var(--space-md);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      margin-bottom: var(--space-lg);
+    }
+    .framing-legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+    .framing-legend-item .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 3px;
+    }
+    .framing-input-section .form-control,
+    .framing-input-section .form-select {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      border-radius: var(--border-radius-sm);
+      padding: 10px 14px;
+      transition: var(--transition-fast);
+    }
+    .framing-input-section .form-control:focus,
+    .framing-input-section .form-select:focus {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(79,142,247,0.15);
+      background: var(--bg-input);
+      color: var(--text-primary);
+    }
+    .framing-input-section .form-control::placeholder {
+      color: var(--text-muted);
+    }
+    .framing-input-section label {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+    .framing-input-section .invalid-feedback {
+      font-size: 0.78rem;
+      color: var(--color-danger);
+    }
+    .framing-input-section .form-select option {
+      background: var(--bg-card);
+      color: var(--text-primary);
+    }
+
+    /* Animation delays for frames */
+    .framing-frame-block:nth-child(1) { animation-delay: 0.05s; }
+    .framing-frame-block:nth-child(2) { animation-delay: 0.10s; }
+    .framing-frame-block:nth-child(3) { animation-delay: 0.15s; }
+    .framing-frame-block:nth-child(4) { animation-delay: 0.20s; }
+    .framing-frame-block:nth-child(5) { animation-delay: 0.25s; }
+    .framing-frame-block:nth-child(6) { animation-delay: 0.30s; }
+    .framing-frame-block:nth-child(7) { animation-delay: 0.35s; }
+    .framing-frame-block:nth-child(8) { animation-delay: 0.40s; }
+  </style>
+</head>
+
+<!--
+  data-page="framing" — matches the nav key in navigation.js
+-->
+<body data-page="framing">
+
+  <!-- ═══════════════════════════════════════════════
+       NAVIGATION — injected by navigation.js
+  ════════════════════════════════════════════════════ -->
+  <div id="sn-nav-container"></div>
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE HEADER
+  ════════════════════════════════════════════════════ -->
+  <section class="section-gap-sm" style="background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-base) 100%); position: relative; overflow: hidden;">
+    <div style="position:absolute;top:-30%;right:-10%;width:40%;height:160%;background:radial-gradient(ellipse,rgba(79,142,247,0.06) 0%,transparent 70%);pointer-events:none;"></div>
+    <div class="container">
+      <div class="animate-fade-in-up">
+        <a href="../../pages/dashboard.html" class="btn-secondary-sn" style="padding:6px 14px;font-size:0.78rem;margin-bottom:var(--space-lg);display:inline-flex;" id="btn-back-simulations">
+          ← Back to Dashboard
+        </a>
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="sn-card-icon blue" style="width:52px;height:52px;font-size:1.4rem;">📦</div>
+          <div>
+            <h1 style="font-size:clamp(1.4rem,3vw,2rem);margin:0;" id="page-title">Framing Simulation</h1>
+            <p style="margin:4px 0 0;font-size:0.88rem;color:var(--text-secondary);">Data Link Layer · Frame Construction</p>
+          </div>
+        </div>
+        <p style="max-width:700px;font-size:0.92rem;line-height:1.7;color:var(--text-secondary);">
+          Framing is a <strong style="color:var(--text-primary);">Data Link Layer</strong> technique used to divide
+          a continuous stream of bits into manageable, identifiable frames for transmission. Each frame is delimited
+          so the receiver can detect where one frame ends and the next begins. This module simulates
+          <strong style="color:var(--color-primary);">Character Count</strong>,
+          <strong style="color:var(--color-accent);">Byte Stuffing</strong>, and
+          <strong style="color:var(--color-warning);">Bit Stuffing</strong> techniques.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       MAIN CONTENT
+  ════════════════════════════════════════════════════ -->
+  <section class="section-gap-sm">
+    <div class="container">
+      <div class="row g-4">
+
+        <!-- ── LEFT: Input Panel ──────────────────────── -->
+        <div class="col-lg-5">
+          <div class="sn-card framing-input-section animate-fade-in-up" id="framing-input-card">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span style="font-size:1.1rem;">⚙️</span>
+              <h3 style="font-size:1rem;margin:0;color:var(--text-primary);">Configuration</h3>
+            </div>
+
+            <div class="mb-3">
+              <label for="framing-data-input" class="form-label">Data Input</label>
+              <input type="text" class="form-control" id="framing-data-input"
+                     placeholder="e.g. 101100111010 or HELLO"
+                     autocomplete="off" spellcheck="false" />
+              <div class="invalid-feedback" id="framing-data-error"></div>
+              <div class="form-text" style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;">
+                Enter data as binary bits or ASCII characters depending on method.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="framing-method-select" class="form-label">Framing Method</label>
+              <select class="form-select" id="framing-method-select">
+                <option value="character-count">Character Count</option>
+                <option value="byte-stuffing">Byte Stuffing</option>
+                <option value="bit-stuffing">Bit Stuffing</option>
+              </select>
+            </div>
+
+            <!-- Character Count specific: frame size -->
+            <div class="mb-3" id="framing-frame-size-group">
+              <label for="framing-frame-size" class="form-label">Characters Per Frame</label>
+              <input type="number" class="form-control" id="framing-frame-size"
+                     value="4" min="1" max="99" />
+              <div class="invalid-feedback" id="framing-frame-size-error"></div>
+              <div class="form-text" style="font-size:0.72rem;color:var(--text-muted);margin-top:4px;">
+                Number of data characters in each frame (excluding the count byte).
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn-primary-sn" id="btn-run-framing" type="button">
+                ▶ Run Simulation
+              </button>
+              <button class="btn-secondary-sn" id="btn-reset-framing" type="button">
+                ↺ Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Method Info Card -->
+          <div class="sn-card animate-fade-in-up animate-delay-2 mt-3" id="framing-method-info-card">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span style="font-size:1rem;">📘</span>
+              <h4 style="font-size:0.9rem;margin:0;color:var(--text-primary);">How It Works</h4>
+            </div>
+            <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;margin:0;" id="framing-method-description">
+              <strong style="color:var(--color-primary);">Character Count:</strong>
+              Each frame starts with a count field indicating the total number of characters in the frame
+              (including the count field itself). The receiver reads the count, extracts that many characters,
+              and repeats for the next frame.
+            </p>
+          </div>
+        </div>
+
+        <!-- ── RIGHT: Visualization & Results ─────────── -->
+        <div class="col-lg-7">
+
+          <!-- Simulation Output -->
+          <div class="sn-card animate-fade-in-up animate-delay-1" id="framing-output-card">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <div class="d-flex align-items-center gap-2">
+                <span style="font-size:1.1rem;">📊</span>
+                <h3 style="font-size:1rem;margin:0;color:var(--text-primary);">Simulation Output</h3>
+              </div>
+              <span class="sn-badge muted" id="framing-status-badge">Waiting</span>
+            </div>
+
+            <!-- Empty state -->
+            <div id="framing-empty-state" class="results-empty" style="padding:var(--space-xl) var(--space-md);">
+              <div class="empty-icon">📦</div>
+              <p>Enter data and select a framing method to begin.</p>
+            </div>
+
+            <!-- Flow: Original → Process → Frames -->
+            <div id="framing-output-content" style="display:none;">
+
+              <!-- Original Data -->
+              <div style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:var(--space-md);margin-bottom:var(--space-md);">
+                <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Original Data</div>
+                <div style="font-family:var(--font-mono);font-size:0.92rem;color:var(--text-primary);word-break:break-all;" id="framing-original-data"></div>
+              </div>
+
+              <div class="framing-flow-arrow">↓</div>
+
+              <!-- Legend -->
+              <div class="framing-legend" id="framing-legend"></div>
+
+              <!-- Frame Visualization -->
+              <div id="framing-frames-container"></div>
+
+              <div class="framing-flow-arrow">↓</div>
+
+              <!-- Encoded Data -->
+              <div style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--border-radius);padding:var(--space-md);">
+                <div style="font-size:0.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Encoded / Framed Data</div>
+                <div style="font-family:var(--font-mono);font-size:0.92rem;color:var(--color-accent);word-break:break-all;" id="framing-encoded-data"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Results Summary -->
+          <div class="sn-card animate-fade-in-up animate-delay-3 mt-3" id="framing-results-card" style="display:none;">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span style="font-size:1.1rem;">📋</span>
+              <h3 style="font-size:1rem;margin:0;color:var(--text-primary);">Results Summary</h3>
+            </div>
+            <div class="table-responsive">
+              <table class="sn-table" id="framing-results-table">
+                <tbody>
+                  <tr><td style="font-weight:600;color:var(--text-muted);width:40%;">Status</td><td id="res-framing-status"></td></tr>
+                  <tr><td style="font-weight:600;color:var(--text-muted);">Original Data</td><td id="res-framing-original" style="font-family:var(--font-mono);word-break:break-all;"></td></tr>
+                  <tr><td style="font-weight:600;color:var(--text-muted);">Method</td><td id="res-framing-method"></td></tr>
+                  <tr><td style="font-weight:600;color:var(--text-muted);">Number of Frames</td><td id="res-framing-count" style="font-family:var(--font-mono);"></td></tr>
+                  <tr><td style="font-weight:600;color:var(--text-muted);">Framed Data</td><td id="res-framing-encoded" style="font-family:var(--font-mono);word-break:break-all;"></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /row -->
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════════════ -->
+  <footer class="sn-footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top:none;margin-top:0;padding-top:0;">
+        <p>© 2024 SMARTNET — Network Performance Analyzer &amp; Security Testing System</p>
+        <p style="color:var(--text-muted);">Member 2 · Framing Module</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ══════════════════════════════════════
+       Scripts
+  ═══════════════════════════════════════════ -->
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+          crossorigin="anonymous"></script>
+
+  <!-- SMARTNET Shared Layers (load order matters) -->
+  <script src="../../../assets/js/navigation.js"></script>
+  <script src="../../../assets/js/integration.js"></script>
+
+  <!-- Framing module logic -->
+  <script src="../../../assets/js/modules/framing.js"></script>
+
+</body>
+</html>
