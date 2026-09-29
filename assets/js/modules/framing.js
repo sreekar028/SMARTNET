@@ -496,4 +496,13 @@ document.addEventListener('DOMContentLoaded', function () {
   dataInput.addEventListener('input', clearValidation);
   frameSizeInput.addEventListener('input', clearValidation);
 
+  // Back to Dashboard navigation handler
+  const btnBack = document.getElementById('btn-back-dashboard') || document.getElementById('btn-back-simulations');
+  if (btnBack) {
+    btnBack.addEventListener('click', function (e) {
+      e.preventDefault();
+      window.location.href = '../../dashboard.html';
+    });
+  }
+
 });

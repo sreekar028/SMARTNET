@@ -481,4 +481,13 @@ document.addEventListener('DOMContentLoaded', function () {
     el.addEventListener('input', clearValidation);
   });
 
+  // Back to Dashboard navigation handler
+  const btnBack = document.getElementById('btn-back-dashboard') || document.getElementById('btn-back-simulations');
+  if (btnBack) {
+    btnBack.addEventListener('click', function (e) {
+      e.preventDefault();
+      window.location.href = '../../dashboard.html';
+    });
+  }
+
 });

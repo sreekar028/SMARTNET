@@ -256,6 +256,17 @@ SMARTNET.Navigation = (function () {
         });
       }
     });
+
+    // Ensure dashboard links navigate properly
+    container.querySelectorAll('#nav-link-dashboard, #nav-brand').forEach(link => {
+      link.addEventListener('click', function (e) {
+        const href = this.getAttribute('href');
+        if (href && href !== '#') {
+          e.preventDefault();
+          window.location.href = href;
+        }
+      });
+    });
   }
 
   return {
