@@ -8,7 +8,7 @@
  *   All modules must call SMARTNET.Navigation.init() to mount the navbar.
  */
 
-const SMARTNET = window.SMARTNET || {};
+var SMARTNET = window.SMARTNET || {};
 
 SMARTNET.Navigation = (function () {
   'use strict';
