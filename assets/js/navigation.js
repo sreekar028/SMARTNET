@@ -55,16 +55,25 @@ SMARTNET.Navigation = (function () {
   }
 
   function getRootPrefix() {
-    const path = window.location.pathname.replace(/\\/g, '/');
-    const parts = path.split('/');
-    // Find the SMARTNET root index
-    const smartnetIdx = parts.findIndex(p => p.toUpperCase() === 'SMARTNET');
-    if (smartnetIdx === -1) return '';
-    // Current depth relative to SMARTNET root
-    const remainingParts = parts.slice(smartnetIdx + 1).filter(p => p !== '');
-    // Remove the filename at the end
-    const depth = Math.max(0, remainingParts.length - 1);
-    return depth === 0 ? '' : '../'.repeat(depth);
+    // 1. Script tag src attribute provides exact relative path to assets/
+    const scriptEl = document.currentScript || document.querySelector('script[src*="navigation.js"]');
+    if (scriptEl) {
+      const src = scriptEl.getAttribute('src') || '';
+      const idx = src.indexOf('assets/');
+      if (idx !== -1) {
+        return src.substring(0, idx);
+      }
+    }
+
+    // 2. Relative path based on directory depth in project structure
+    const path = window.location.pathname.replace(/\\/g, '/').toLowerCase();
+    if (path.includes('/pages/modules/') || path.includes('/pages/tools/')) {
+      return '../../../';
+    }
+    if (path.includes('/pages/')) {
+      return '../';
+    }
+    return '';
   }
 
   /* ── Nav HTML Template ───────────────────────────────────
@@ -119,7 +128,7 @@ SMARTNET.Navigation = (function () {
 
         <!-- Simulations dropdown -->
         <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="${r('simulations')}"
+          <a class="nav-link dropdown-toggle" href="#"
              id="nav-link-simulations" role="button"
              data-bs-toggle="dropdown" aria-expanded="false"
              data-nav-key="simulations">
@@ -214,6 +223,39 @@ SMARTNET.Navigation = (function () {
     const root = getRootPrefix();
     container.innerHTML = buildNavHTML(root);
     setActiveLink();
+
+    // Ensure dropdowns toggle reliably across environments
+    container.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+      toggle.addEventListener('click', function (e) {
+        e.preventDefault();
+        const menu = this.nextElementSibling;
+        if (menu && menu.classList.contains('dropdown-menu')) {
+          const isOpen = menu.classList.contains('show');
+          // Close other open menus
+          container.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+          container.querySelectorAll('.dropdown-toggle.show').forEach(t => {
+            t.classList.remove('show');
+            t.setAttribute('aria-expanded', 'false');
+          });
+          if (!isOpen) {
+            menu.classList.add('show');
+            this.classList.add('show');
+            this.setAttribute('aria-expanded', 'true');
+          }
+        }
+      });
+    });
+
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.dropdown')) {
+        container.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+        container.querySelectorAll('.dropdown-toggle.show').forEach(t => {
+          t.classList.remove('show');
+          t.setAttribute('aria-expanded', 'false');
+        });
+      }
+    });
   }
 
   return {

@@ -182,6 +182,13 @@ code, pre { font-family: var(--font-mono); }
   box-shadow: var(--shadow-lg);
 }
 
+@media (min-width: 992px) {
+  .sn-navbar .dropdown:hover .dropdown-menu {
+    display: block;
+    margin-top: 0;
+  }
+}
+
 .sn-navbar .dropdown-item {
   color: var(--text-secondary);
   font-size: 0.85rem;
