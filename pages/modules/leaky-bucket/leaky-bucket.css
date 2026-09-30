@@ -502,3 +502,53 @@
   color: var(--color-primary-light);
   margin: 10px 0;
 }
+
+/* ── VALIDATION & FORM FEEDBACK ────────────────────────────── */
+.is-invalid {
+  border-color: var(--color-danger) !important;
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.25) !important;
+}
+.invalid-feedback {
+  display: none;
+  font-size: 0.75rem;
+  color: var(--color-danger);
+  margin-top: 4px;
+  font-weight: 500;
+}
+.is-invalid ~ .invalid-feedback {
+  display: block;
+}
+
+/* ── RESULTS GRID SECTION (Section 21) ─────────────────────── */
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: var(--space-md);
+}
+.result-stat-box {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 12px;
+  text-align: center;
+  transition: var(--transition-normal);
+}
+.result-stat-box:hover {
+  border-color: var(--border-color-light);
+  transform: translateY(-2px);
+}
+.result-stat-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+.result-stat-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
