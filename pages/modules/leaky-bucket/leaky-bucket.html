@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SMARTNET Leaky Bucket Algorithm Simulation — Traffic shaping, congestion control, buffer queue analysis, and packet drop monitoring on the common network topology." />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>Leaky Bucket Simulation — SMARTNET</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+
+  <!-- SMARTNET Global Stylesheet -->
+  <link rel="stylesheet" href="../../../assets/css/style.css" />
+
+  <!-- Leaky Bucket Module Styles -->
+  <link rel="stylesheet" href="leaky-bucket.css" />
+</head>
+
+<body data-page="leakyBucket">
+
+  <!-- ═══════════════════════════════════════════════
+       NAVIGATION — injected by navigation.js
+  ════════════════════════════════════════════════════ -->
+  <div id="sn-nav-container"></div>
+
+  <!-- ═══════════════════════════════════════════════
+       MODULE HERO / BREADCRUMB
+  ════════════════════════════════════════════════════ -->
+  <header class="hero-section" style="padding: var(--space-xl) 0 var(--space-lg);">
+    <div class="container">
+      <!-- Breadcrumb -->
+      <nav class="module-breadcrumb" aria-label="Breadcrumb">
+        <a href="../../../pages/dashboard.html">Dashboard</a>
+        <span class="separator">/</span>
+        <a href="../../../pages/simulations.html">Simulations</a>
+        <span class="separator">/</span>
+        <span style="color:var(--text-primary)">Leaky Bucket</span>
+      </nav>
+
+      <div class="row align-items-center g-4">
+        <div class="col-lg-8 animate-fade-in-up">
+          <div class="module-header-badge">
+            <span class="status-dot"></span>
+            Congestion Control &amp; Traffic Shaping · v1.0
+          </div>
+          <h1 class="hero-title" style="font-size:clamp(1.8rem, 4vw, 2.5rem); margin-bottom:8px;">
+            Leaky Bucket <span>Simulation</span>
+          </h1>
+          <p class="hero-subtitle" style="font-size:0.95rem; margin-bottom:0;">
+            Simulate network traffic regulation, packet rate smoothing, and queue overflow handling.
+            Observe how bursty data from end-hosts is transformed into a steady, conforming stream
+            at intermediate routers across the SMARTNET common network topology.
+          </p>
+        </div>
+
+        <div class="col-lg-4 text-lg-end animate-fade-in-up animate-delay-1">
+          <button class="btn-accent-sn" id="btn-lb-save-result" aria-label="Save results to Dashboard">
+            💾 Save Results to Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════
+       MAIN SIMULATION INTERFACE
+  ════════════════════════════════════════════════════ -->
+  <main class="container my-4" id="main-content">
+
+    <!-- Top: Real-Time Performance Metric Cards -->
+    <section class="row g-3 mb-4" id="leaky-bucket-metrics" aria-label="Live Performance Metrics">
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="metric-card">
+          <div class="metric-icon blue">🪣</div>
+          <div class="metric-info">
+            <div class="metric-name">Buffer Fill</div>
+            <div class="metric-value text-mono" id="metric-lb-fill">0 pkts</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="metric-card">
+          <div class="metric-icon purple">📥</div>
+          <div class="metric-info">
+            <div class="metric-name">Total Inflow</div>
+            <div class="metric-value text-mono" id="metric-lb-inflow">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="metric-card">
+          <div class="metric-icon green">⚡</div>
+          <div class="metric-info">
+            <div class="metric-name">Transmitted</div>
+            <div class="metric-value text-mono" id="metric-lb-sent">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="metric-card">
+          <div class="metric-icon red">💥</div>
+          <div class="metric-info">
+            <div class="metric-name">Dropped</div>
+            <div class="metric-value text-mono" id="metric-lb-dropped">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="metric-card">
+          <div class="metric-icon yellow">📉</div>
+          <div class="metric-info">
+            <div class="metric-name">Drop Rate</div>
+            <div class="metric-value text-mono" id="metric-lb-droprate">0.0%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="metric-card">
+          <div class="metric-icon cyan">🚀</div>
+          <div class="metric-info">
+            <div class="metric-name">Throughput</div>
+            <div class="metric-value text-mono" id="metric-lb-throughput">0.0 Mbps</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Grid: Controls + Visual Bucket Stage -->
+    <div class="row g-4 mb-4">
+
+      <!-- Left Column: Controls & Configuration (Section 16 & 17) -->
+      <div class="col-lg-5">
+        <div class="sn-card h-100">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h3 style="font-size:1.1rem;margin:0;">⚙️ Simulation Controls</h3>
+            <span class="sn-badge info">Traffic Shaper</span>
+          </div>
+
+          <!-- Bootstrap Validation Banner -->
+          <div class="alert alert-danger d-none py-2 px-3 mb-3" id="lb-validation-alert" role="alert" style="font-size:0.82rem;"></div>
+
+          <!-- Parameter 1: Bucket Size / Capacity (Section 16 & 17) -->
+          <div class="control-group">
+            <label class="control-label" for="lb-capacity-input">
+              <span>Bucket Size (Buffer Capacity)</span>
+              <span class="val-badge" id="lb-cap-val">10</span>
+            </label>
+            <div class="input-group mb-1">
+              <input type="number" class="sn-input" id="lb-capacity-input" value="10" min="1" step="1" placeholder="10" aria-label="Bucket Size" />
+              <div class="invalid-feedback" id="lb-cap-feedback">Bucket size must be greater than 0.</div>
+            </div>
+            <input type="range" class="sn-range mt-1" id="lb-capacity" min="1" max="30" value="10" aria-label="Bucket Capacity Slider" />
+            <small class="text-muted" style="font-size:0.72rem;">Maximum packets the buffer queue can hold before overflow occurs.</small>
+          </div>
+
+          <!-- Parameter 2: Output Rate (Section 16 & 17) -->
+          <div class="control-group">
+            <label class="control-label" for="lb-rate-input">
+              <span>Output Rate (Leak Rate / tick)</span>
+              <span class="val-badge" id="lb-rate-val">2</span>
+            </label>
+            <div class="input-group mb-1">
+              <input type="number" class="sn-input" id="lb-rate-input" value="2" min="1" step="1" placeholder="2" aria-label="Output Rate" />
+              <div class="invalid-feedback" id="lb-rate-feedback">Output rate must be greater than 0.</div>
+            </div>
+            <input type="range" class="sn-range mt-1" id="lb-leak-rate" min="1" max="15" value="2" aria-label="Output Rate Slider" />
+            <small class="text-muted" style="font-size:0.72rem;">Fixed constant packets transmitted out of the buffer per clock tick.</small>
+          </div>
+
+          <!-- Parameter 3: Incoming Packet Sequence (Section 16 & 17) -->
+          <div class="control-group">
+            <label class="control-label" for="lb-custom-seq">
+              <span>Incoming Packet Sequence</span>
+              <span class="text-muted" style="font-size:0.72rem;">Comma-separated integers</span>
+            </label>
+            <input type="text" class="sn-input text-mono" id="lb-custom-seq" value="4, 3, 5, 2, 8" placeholder="4, 3, 5, 2, 8" aria-label="Incoming Packet Sequence" />
+            <div class="invalid-feedback" id="lb-seq-feedback">Packet values must be non-negative numbers.</div>
+            <small class="text-muted" style="font-size:0.72rem;">Sequence of incoming packet arrivals per discrete clock tick.</small>
+
+            <!-- Quick Presets -->
+            <div class="preset-chip-group mt-2">
+              <button type="button" class="preset-chip" data-preset="default">Default [4, 3, 5, 2, 8]</button>
+              <button type="button" class="preset-chip" data-preset="bursty">Bursty Traffic</button>
+              <button type="button" class="preset-chip" data-preset="cbr">Constant (CBR)</button>
+              <button type="button" class="preset-chip" data-preset="congestion">High Congestion</button>
+              <button type="button" class="preset-chip" data-preset="spikes">Sudden Spikes</button>
+            </div>
+          </div>
+
+          <!-- Parameter 4: Simulation Speed (Section 16) -->
+          <div class="control-group">
+            <label class="control-label" for="lb-speed-select">
+              <span>Simulation Speed</span>
+            </label>
+            <select class="sn-select" id="lb-speed-select" aria-label="Simulation Speed">
+              <option value="1500">Slow (1.5s)</option>
+              <option value="1000" selected>Normal (1.0s)</option>
+              <option value="500">Fast (0.5s)</option>
+            </select>
+          </div>
+
+          <!-- Common Network Topology Routing Context -->
+          <div class="topo-preview-box">
+            <div style="font-size:0.8rem;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
+              <span>🗺️ SMARTNET Common Topology Flow Path</span>
+            </div>
+            <div class="row g-2 mt-1">
+              <div class="col-6">
+                <label style="font-size:0.72rem;color:var(--text-muted);" for="lb-source-node">Source Host</label>
+                <select class="sn-select" id="lb-source-node" style="padding:4px 8px;font-size:0.78rem;">
+                  <option value="PC1" selected>PC1 (Host)</option>
+                  <option value="PC2">PC2 (Host)</option>
+                  <option value="PC3">PC3 (Host)</option>
+                  <option value="PC4">PC4 (Host)</option>
+                </select>
+              </div>
+              <div class="col-6">
+                <label style="font-size:0.72rem;color:var(--text-muted);" for="lb-router-node">Shaper Router Node</label>
+                <select class="sn-select" id="lb-router-node" style="padding:4px 8px;font-size:0.78rem;">
+                  <option value="R1" selected>R1 (Router Buffer)</option>
+                  <option value="R2">R2 (Router Buffer)</option>
+                  <option value="R3">R3 (Core Router)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Path visualization chips -->
+            <div class="topo-flow-path">
+              <div class="topo-node-chip" id="topo-source-chip">💻 PC1</div>
+              <div class="topo-flow-arrow">➔</div>
+              <div class="topo-node-chip active-shaper" id="topo-router-chip">📡 R1 (Shaper)</div>
+              <div class="topo-flow-arrow">➔</div>
+              <div class="topo-node-chip" id="topo-dest-chip">🖥️ SERVER</div>
+            </div>
+          </div>
+
+          <!-- Main Action Buttons (Section 16) -->
+          <div class="btn-ctrl-group">
+            <button class="btn-primary-sn" id="btn-lb-play" aria-label="Run Simulation">▶️ Run Simulation</button>
+            <button class="btn-secondary-sn" id="btn-lb-step" aria-label="Single Step Simulation">⏭️ Step</button>
+            <button class="btn-secondary-sn" id="btn-lb-reset" aria-label="Reset Simulation">🔄 Reset</button>
+          </div>
+
+          <!-- Manual Live Packet Injection -->
+          <div class="mt-3 pt-3" style="border-top:1px solid var(--border-color);">
+            <div style="font-size:0.76rem;color:var(--text-muted);margin-bottom:6px;">LIVE BURST INJECTION</div>
+            <div class="d-flex gap-2">
+              <button class="btn-outline-sn" data-inject="1" style="flex:1;justify-content:center;">+1 Pkt</button>
+              <button class="btn-outline-sn" data-inject="3" style="flex:1;justify-content:center;">+3 Pkts</button>
+              <button class="btn-outline-sn" data-inject="5" style="flex:1;justify-content:center;">+5 Pkts</button>
+              <button class="btn-outline-sn" data-inject="10" style="flex:1;justify-content:center;">+10 Pkts</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right Column: Visual Leaky Bucket Display (Section 19) -->
+      <div class="col-lg-7">
+        <div class="bucket-viz-container h-100">
+          <div class="bucket-header-info">
+            <span><strong>Physical Model:</strong> Fluid Queue Buffer</span>
+            <span>Occupancy: <strong id="lb-curr-fill" style="color:var(--color-accent);font-family:var(--font-mono);">0 / 10 (0%)</strong></span>
+          </div>
+
+          <!-- The Bucket Stage -->
+          <div class="bucket-stage">
+
+            <!-- Top Inflow Funnel -->
+            <div class="inflow-pipe">INCOMING PACKETS</div>
+            <div class="inflow-particles">
+              <div class="packet-drop-anim" id="lb-inflow-anim"></div>
+            </div>
+
+            <!-- Overflow Spillway (Right) -->
+            <div class="overflow-chute" id="lb-overflow-chute">
+              <span style="font-size:1.4rem;">⚠️</span>
+              <span id="lb-overflow-count" style="font-weight:700;">Overflow Dropped</span>
+            </div>
+
+            <!-- The Transparent Glass Bucket -->
+            <div class="glass-bucket">
+              <!-- Animated Liquid Fill -->
+              <div class="bucket-fluid" id="lb-bucket-fluid">
+                <div class="fluid-wave"></div>
+              </div>
+
+              <!-- Queued packet chips inside bucket -->
+              <div class="bucket-packet-grid" id="lb-packet-grid"></div>
+
+              <!-- Capacity Graduated Markings -->
+              <div class="bucket-markings">
+                <div class="marking-line"><span id="lb-cap-max-mark">10</span><span class="marking-dash"></span></div>
+                <div class="marking-line"><span id="lb-cap-mid-mark">5</span><span class="marking-dash"></span></div>
+                <div class="marking-line"><span>0</span><span class="marking-dash"></span></div>
+              </div>
+            </div>
+
+            <!-- Bottom Outflow Spigot & Drip -->
+            <div class="outflow-spigot">
+              <div class="leak-drop-stream">
+                <div class="leak-particle" id="lb-leak-drip"></div>
+              </div>
+            </div>
+
+          </div><!-- /bucket-stage -->
+
+          <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;margin-top:10px;">
+            Constant Outflow Stream (Fixed Output Rate: <span class="text-accent text-mono" id="lb-outflow-caption">Output Rate = 2 pkts/tick</span>)
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Leaky Bucket Results Card (Section 21) -->
+    <section class="sn-card mb-4" id="lb-results-section" aria-labelledby="results-heading">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size:1.2rem;">📊</span>
+          <h3 id="results-heading" style="font-size:1.1rem;margin:0;">Leaky Bucket Simulation Results</h3>
+        </div>
+        <span class="sn-badge primary" id="stat-lb-status-badge">Simulation Idle</span>
+      </div>
+
+      <div class="results-grid">
+        <div class="result-stat-box">
+          <div class="result-stat-label">Bucket Size</div>
+          <div class="result-stat-value text-mono" id="res-lb-cap">10 pkts</div>
+        </div>
+        <div class="result-stat-box">
+          <div class="result-stat-label">Output Rate</div>
+          <div class="result-stat-value text-mono" id="res-lb-rate">2 pkts/tick</div>
+        </div>
+        <div class="result-stat-box">
+          <div class="result-stat-label">Total Incoming</div>
+          <div class="result-stat-value text-mono" id="res-lb-incoming">0</div>
+        </div>
+        <div class="result-stat-box">
+          <div class="result-stat-label">Total Transmitted</div>
+          <div class="result-stat-value text-mono" id="res-lb-sent" style="color:var(--color-accent);">0</div>
+        </div>
+        <div class="result-stat-box">
+          <div class="result-stat-label">Total Dropped</div>
+          <div class="result-stat-value text-mono" id="res-lb-dropped" style="color:var(--color-danger);">0</div>
+        </div>
+        <div class="result-stat-box">
+          <div class="result-stat-label">Final Occupancy</div>
+          <div class="result-stat-value text-mono" id="res-lb-occupancy">0 pkts</div>
+        </div>
+        <div class="result-stat-box">
+          <div class="result-stat-label">Drop Rate</div>
+          <div class="result-stat-value text-mono" id="res-lb-droprate">0.0%</div>
+        </div>
+        <div class="result-stat-box">
+          <div class="result-stat-label">Simulation Status</div>
+          <div class="result-stat-value text-mono" id="res-lb-status" style="font-size:0.95rem;">Ready</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live Performance Chart: Timeline (Section 22) -->
+    <section class="chart-container-box mb-4" aria-labelledby="chart-heading">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+        <h3 id="chart-heading" style="font-size:1.1rem;margin:0;">📈 Traffic Waveform: Inflow vs. Outflow vs. Dropped</h3>
+        <div class="chart-legend">
+          <div class="chart-legend-item">
+            <span class="chart-legend-dot" style="background:#4f8ef7;"></span>
+            <span>Incoming Packets</span>
+          </div>
+          <div class="chart-legend-item">
+            <span class="chart-legend-dot" style="background:#06d6a0;"></span>
+            <span>Fixed Outgoing Rate</span>
+          </div>
+          <div class="chart-legend-item">
+            <span class="chart-legend-dot" style="background:#f59e0b;"></span>
+            <span>Bucket Fill Level</span>
+          </div>
+          <div class="chart-legend-item">
+            <span class="chart-legend-dot" style="background:#ef4444;"></span>
+            <span>Dropped Packets</span>
+          </div>
+        </div>
+      </div>
+
+      <canvas id="trafficCanvas" height="220" role="img" aria-label="Live traffic waveform showing inflow vs constant outflow and dropped packets"></canvas>
+    </section>
+
+    <!-- Discrete Time Step Log Table (Section 20) -->
+    <section class="log-table-container mb-4" aria-labelledby="log-heading">
+      <div class="log-table-header-tools">
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size:1.1rem;">📋</span>
+          <h3 id="log-heading" style="font-size:1.05rem;margin:0;">Step-by-Step Simulation Execution Table</h3>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn-outline-sn" id="btn-lb-export-csv" aria-label="Export log to CSV">
+            📥 Export CSV
+          </button>
+          <button class="btn-outline-sn" id="btn-lb-export-json" aria-label="Export log to JSON">
+            📄 Export JSON
+          </button>
+        </div>
+      </div>
+
+      <div class="table-scroll-wrapper">
+        <table class="sn-table" id="lb-log-table" aria-label="Simulation Execution Log Table">
+          <thead>
+            <tr>
+              <th scope="col">Step</th>
+              <th scope="col">Incoming</th>
+              <th scope="col">Bucket</th>
+              <th scope="col">Transmitted</th>
+              <th scope="col">Dropped</th>
+            </tr>
+          </thead>
+          <tbody id="lb-log-tbody">
+            <!-- Dynamically populated by leaky-bucket.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Educational & Algorithmic Theory Section -->
+    <section class="sn-card mb-4" id="lb-theory" aria-labelledby="theory-heading">
+      <div class="section-header" style="margin-bottom:var(--space-md);">
+        <div class="section-icon">📚</div>
+        <div>
+          <h2 id="theory-heading" style="font-size:1.25rem;">Leaky Bucket Algorithm — Theory &amp; Mathematical Formulation</h2>
+          <p>Understanding Traffic Shaping vs. Traffic Policing in Computer Networks</p>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-6">
+          <h4 style="font-size:0.95rem;color:var(--color-primary);margin-bottom:8px;">1. Mathematical Model</h4>
+          <p style="font-size:0.85rem;line-height:1.6;">
+            At any discrete time step \(t\), let \(A_t\) be the incoming burst of packets, \(B\) be the finite bucket buffer capacity, and \(L\) be the constant leak/outflow rate:
+          </p>
+          <div class="formula-block">
+            Dropped Packets: &nbsp; D_t = max(0, &nbsp; Q_t + A_t - B)<br/>
+            Buffer Level: &nbsp; Q_{t+1} = max(0, &nbsp; min(B, Q_t + A_t) - L)
+          </div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-top:6px;">
+            Any incoming packet arriving when \(Q_t + A_t > B\) exceeds the buffer capacity and is immediately dropped (packet loss due to buffer exhaustion).
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <h4 style="font-size:0.95rem;color:var(--color-accent);margin-bottom:8px;">2. Leaky Bucket vs. Token Bucket</h4>
+          <ul style="font-size:0.84rem;color:var(--text-secondary);line-height:1.7;padding-left:18px;">
+            <li><strong>Leaky Bucket:</strong> Enforces a strictly constant output rate regardless of incoming traffic burstiness. Ideal for ATM networks and jitter-sensitive applications.</li>
+            <li><strong>Token Bucket:</strong> Collects tokens at a steady rate. Allows bursty transmission as long as accumulated tokens are available.</li>
+            <li><strong>Traffic Policing:</strong> Drops or marks non-conforming packets immediately without buffering.</li>
+            <li><strong>Traffic Shaping:</strong> Buffers bursty packets and delays them to output a smooth, conforming stream (implemented by Leaky Bucket).</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="mt-3 pt-3" style="border-top:1px solid var(--border-color);font-size:0.82rem;color:var(--text-muted);">
+        <strong>Role in SMARTNET:</strong> Implemented at intermediate routers (e.g., \(R_1, R_2, R_3\)) to regulate access links from hosts (\(PC_1\)–\(PC_4\)) to the high-speed server uplink, mitigating packet drops and preventing core switch buffer bloat.
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════
+       TOAST NOTIFICATION COMPONENT
+  ════════════════════════════════════════════════════ -->
+  <div class="sn-toast" id="sn-toast" role="status" aria-live="polite">
+    <span style="font-size:1.2rem;">✅</span>
+    <span id="sn-toast-msg">Operation completed</span>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════════════ -->
+  <footer class="sn-footer" id="sn-footer" role="contentinfo">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="footer-brand">
+            <div class="brand-icon" aria-hidden="true">🌐</div>
+            <span>SMARTNET</span>
+          </div>
+          <p>
+            Network Performance Analyzer &amp;<br/>
+            Security Testing System
+          </p>
+          <p style="margin-top:8px;">7-Member Academic Project</p>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <h5 style="font-size:0.85rem;margin-bottom:12px;color:var(--text-primary);">Navigation</h5>
+          <ul class="footer-links">
+            <li><a href="../../../pages/dashboard.html">Dashboard</a></li>
+            <li><a href="../../../pages/topology.html">Network Topology</a></li>
+            <li><a href="../../../pages/simulations.html">Simulation Lab</a></li>
+            <li><a href="../../../pages/results.html">Results Center</a></li>
+          </ul>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <h5 style="font-size:0.85rem;margin-bottom:12px;color:var(--text-primary);">Module Details</h5>
+          <ul class="footer-links">
+            <li><span style="color:var(--text-muted);font-size:0.82rem;">Module:</span> <strong style="color:var(--color-primary)">Leaky Bucket</strong></li>
+            <li><span style="color:var(--text-muted);font-size:0.82rem;">Category:</span> Flow &amp; Congestion Control</li>
+            <li><span style="color:var(--text-muted);font-size:0.82rem;">Lead Member:</span> Member 5 (Ganjikunta Swapna)</li>
+            <li><span style="color:var(--text-muted);font-size:0.82rem;">Architecture:</span> Unified SMARTNET v1.0</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 SMARTNET Project Team. All rights reserved.</p>
+        <p style="color:var(--text-muted);">Common Topology: SERVER - R3 - R1/R2 - PC1..PC4</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- SMARTNET Shared Layers -->
+  <script src="../../../assets/js/navigation.js"></script>
+  <script src="../../../assets/js/integration.js"></script>
+
+  <!-- Leaky Bucket Module JS -->
+  <script src="leaky-bucket.js"></script>
+
+</body>
+</html>

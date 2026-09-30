@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SMARTNET Broadcast Tree Simulation — Spanning tree construction, loop-free packet broadcasting, and topological routing on the common network topology." />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>Broadcast Tree Simulation — SMARTNET</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+
+  <!-- SMARTNET Global Stylesheet -->
+  <link rel="stylesheet" href="../../../assets/css/style.css" />
+
+  <!-- Broadcast Tree Module Styles -->
+  <link rel="stylesheet" href="broadcast-tree.css" />
+</head>
+
+<body data-page="broadcastTree">
+
+  <!-- ═══════════════════════════════════════════════
+       NAVIGATION — injected by navigation.js
+  ════════════════════════════════════════════════════ -->
+  <div id="sn-nav-container"></div>
+
+  <!-- ═══════════════════════════════════════════════
+       MODULE HERO / BREADCRUMB
+  ════════════════════════════════════════════════════ -->
+  <header class="hero-section" style="padding: var(--space-xl) 0 var(--space-lg);">
+    <div class="container">
+      <!-- Breadcrumb -->
+      <nav class="module-breadcrumb" aria-label="Breadcrumb">
+        <a href="../../../pages/dashboard.html">Dashboard</a>
+        <span class="separator">/</span>
+        <a href="../../../pages/simulations.html">Simulations</a>
+        <span class="separator">/</span>
+        <span style="color:var(--text-primary)">Broadcast Tree</span>
+      </nav>
+
+      <div class="row align-items-center g-4">
+        <div class="col-lg-8 animate-fade-in-up">
+          <div class="module-header-badge">
+            <span class="status-dot"></span>
+            Loop-Free Routing &amp; Spanning Tree · v1.0
+          </div>
+          <h1 class="hero-title" style="font-size:clamp(1.8rem, 4vw, 2.5rem); margin-bottom:8px;">
+            Broadcast Tree <span>Simulation</span>
+          </h1>
+          <p class="hero-subtitle" style="font-size:0.95rem; margin-bottom:0;">
+            Demonstrate loop-free broadcast packet transmission using dynamically constructed spanning trees.
+            Observe how a single broadcast from any root node reaches every reachable destination across the
+            SMARTNET centralized topology without duplicate packet transmissions or routing loops.
+          </p>
+        </div>
+
+        <div class="col-lg-4 text-lg-end animate-fade-in-up animate-delay-1">
+          <button class="btn-accent-sn" id="btn-bt-save-result" aria-label="Save results to Dashboard">
+            💾 Save Results to Dashboard
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════
+       MAIN SIMULATION INTERFACE
+  ════════════════════════════════════════════════════ -->
+  <main class="container my-4" id="main-content">
+
+    <!-- Top: Quick Metric Overview Cards -->
+    <section class="row g-3 mb-4" id="bt-summary-metrics" aria-label="Broadcast Summary Metrics">
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="metric-card">
+          <div class="metric-icon blue">📍</div>
+          <div class="metric-info">
+            <div class="metric-name">Root Node</div>
+            <div class="metric-value text-mono" id="stat-bt-root">R3</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="metric-card">
+          <div class="metric-icon green">🎯</div>
+          <div class="metric-info">
+            <div class="metric-name">Nodes Reached</div>
+            <div class="metric-value" id="stat-bt-reached">8 / 8 (100%)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="metric-card">
+          <div class="metric-icon purple">🌳</div>
+          <div class="metric-info">
+            <div class="metric-name">Tree Edges</div>
+            <div class="metric-value text-mono" id="stat-bt-edges">7</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="metric-card">
+          <div class="metric-icon cyan">⚡</div>
+          <div class="metric-info">
+            <div class="metric-name">Broadcast Status</div>
+            <div class="metric-value" id="stat-bt-status" style="font-size:0.95rem;">Completed</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="metric-card">
+          <div class="metric-icon red">⚠️</div>
+          <div class="metric-info">
+            <div class="metric-name">Unreachable</div>
+            <div class="metric-value text-mono" id="stat-bt-unreachable">None</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-md-4 col-lg-2">
+        <div class="metric-card">
+          <div class="metric-icon yellow">🛡️</div>
+          <div class="metric-info">
+            <div class="metric-name">Loop Avoidance</div>
+            <div class="metric-value" id="stat-bt-efficiency">100%</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Grid: Controls + Interactive Topology SVG Display -->
+    <div class="row g-4 mb-4">
+
+      <!-- Left Column: Controls & Configuration -->
+      <div class="col-lg-4">
+        <div class="sn-card h-100">
+          <div class="d-flex align-items-center justify-content-between mb-3">
+            <h3 style="font-size:1.1rem;margin:0;">⚙️ Simulation Controls</h3>
+            <span class="sn-badge success">Common Topology</span>
+          </div>
+
+          <!-- Alert for validation & edge cases -->
+          <div class="alert alert-danger d-none py-2 px-3 mb-3" id="bt-validation-alert" role="alert" style="font-size:0.82rem;"></div>
+
+          <!-- Root Node Input (Section 8) -->
+          <div class="control-group">
+            <label class="control-label" for="bt-root-select">
+              <span>Root Node (Broadcast Source)</span>
+              <span class="text-muted" style="font-size:0.75rem;">Source host or router</span>
+            </label>
+            <select class="sn-select" id="bt-root-select" aria-label="Select Root Node">
+              <!-- Dynamically populated from data/topology.json -->
+              <option value="SERVER">Server (server)</option>
+              <option value="R3" selected>R3 (router)</option>
+              <option value="R1">R1 (router)</option>
+              <option value="R2">R2 (router)</option>
+              <option value="PC1">PC1 (host)</option>
+              <option value="PC2">PC2 (host)</option>
+              <option value="PC3">PC3 (host)</option>
+              <option value="PC4">PC4 (host)</option>
+            </select>
+            <small class="text-muted" style="font-size:0.72rem;">Originating sender node for network broadcast.</small>
+          </div>
+
+          <!-- Destination / Broadcast Target (Section 8) -->
+          <div class="control-group">
+            <label class="control-label" for="bt-dest-input">
+              <span>Destination / Broadcast Target</span>
+            </label>
+            <input type="text" class="sn-input" id="bt-dest-input" value="All Nodes (Network-wide Broadcast)" disabled />
+            <small class="text-muted" style="font-size:0.72rem;">Packets propagate along spanning tree edges to all reachable nodes.</small>
+          </div>
+
+          <!-- Topology Scenario / Edge Case Testing (Section 14) -->
+          <div class="control-group">
+            <label class="control-label" for="bt-scenario-select">
+              <span>Topological Scenario / Edge Case</span>
+            </label>
+            <select class="sn-select" id="bt-scenario-select" aria-label="Select Topology Scenario">
+              <option value="normal" selected>Normal Topology (Full Reachability)</option>
+              <option value="partition">Simulated Link Cut: Sever R3-R2 (Partition Test)</option>
+              <option value="loop">Add Redundant Cross-Link: R1-R2 (Loop Pruning Test)</option>
+            </select>
+            <small class="text-muted" style="font-size:0.72rem;">Test edge cases such as link cuts, disconnected nodes, and pruned redundant links.</small>
+          </div>
+
+          <!-- Animation Speed Control -->
+          <div class="control-group">
+            <label class="control-label" for="bt-speed-select">
+              <span>Broadcast Animation Speed</span>
+            </label>
+            <select class="sn-select" id="bt-speed-select" aria-label="Animation Speed">
+              <option value="1200">Slow (1.2s per hop)</option>
+              <option value="800" selected>Normal (0.8s per hop)</option>
+              <option value="400">Fast (0.4s per hop)</option>
+            </select>
+          </div>
+
+          <!-- Main Action Buttons (Section 8) -->
+          <div class="btn-ctrl-group">
+            <button class="btn-primary-sn" id="btn-bt-build" aria-label="Build Broadcast Tree">
+              🏗️ Build Broadcast Tree
+            </button>
+            <button class="btn-accent-sn" id="btn-bt-broadcast" aria-label="Start Broadcast">
+              ▶️ Start Broadcast
+            </button>
+            <button class="btn-secondary-sn" id="btn-bt-reset" aria-label="Reset simulation">
+              🔄 Reset
+            </button>
+          </div>
+
+          <!-- Live Event Ticker -->
+          <div class="mt-3 pt-3" style="border-top:1px solid var(--border-color);">
+            <div style="font-size:0.76rem;color:var(--text-muted);margin-bottom:6px;font-weight:700;display:flex;justify-content:space-between;">
+              <span>📡 LIVE TRANSMISSION EVENT TICKER</span>
+              <span style="font-weight:normal;color:var(--color-accent);">Real-time BFS log</span>
+            </div>
+            <div class="event-ticker-box" id="bt-event-ticker" aria-live="polite">
+              <div class="event-ticker-entry">
+                <span class="time-tag">[Ready]</span>
+                <span>Select a root node and click "Start Broadcast" to trace packet flow.</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Right Column: Visual Broadcast Tree Display (Section 10) -->
+      <div class="col-lg-8">
+        <div class="tree-viz-container h-100">
+          <div class="tree-viz-header">
+            <div class="tree-viz-title">
+              <span>🌳 Network Broadcast Tree Topology</span>
+            </div>
+            <!-- Legend -->
+            <div class="tree-legend">
+              <div class="tree-legend-item">
+                <span class="tree-legend-indicator" style="background:#38bdf8;box-shadow:0 0 6px #38bdf8;"></span>
+                <span>Root Node</span>
+              </div>
+              <div class="tree-legend-item">
+                <span class="tree-legend-line" style="background:var(--color-accent);box-shadow:0 0 6px rgba(6,214,160,0.7);"></span>
+                <span>Tree Edge (Active)</span>
+              </div>
+              <div class="tree-legend-item">
+                <span class="tree-legend-line" style="background:#475569;border-top:2px dashed #64748b;"></span>
+                <span>Non-Tree (Pruned)</span>
+              </div>
+              <div class="tree-legend-item">
+                <span class="tree-legend-indicator" style="background:rgba(6,214,160,0.4);border:1px solid var(--color-accent);"></span>
+                <span>Received</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- SVG Canvas Container -->
+          <div style="position:relative;flex:1;display:flex;align-items:center;justify-content:center;">
+            <svg id="broadcast-tree-svg" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Interactive Broadcast Spanning Tree Diagram"></svg>
+          </div>
+
+          <div style="font-size:0.75rem;color:var(--text-muted);text-align:center;margin-top:8px;">
+            💡 Click any node in the diagram or choose from the dropdown to set it as the Broadcast Root.
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Parent-Child Spanning Tree Table (Section 13) -->
+    <section class="sn-card mb-4" id="bt-table-section" aria-labelledby="table-heading">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <span style="font-size:1.15rem;">📋</span>
+          <h3 id="table-heading" style="font-size:1.05rem;margin:0;">Generated Parent-Child Tree Relationships</h3>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn-outline-sn" id="btn-bt-export-csv" aria-label="Export tree to CSV">
+            📥 Export CSV
+          </button>
+          <button class="btn-outline-sn" id="btn-bt-export-json" aria-label="Export tree to JSON">
+            📄 Export JSON
+          </button>
+        </div>
+      </div>
+
+      <div class="table-scroll-wrapper">
+        <table class="sn-table" id="bt-relationships-table" aria-label="Broadcast Tree Relationships Table">
+          <thead>
+            <tr>
+              <th scope="col">Parent Node</th>
+              <th scope="col">Child Node</th>
+              <th scope="col">Hop Depth / Level</th>
+              <th scope="col">Link Bandwidth</th>
+              <th scope="col">Tree Transmission Status</th>
+            </tr>
+          </thead>
+          <tbody id="bt-tree-tbody">
+            <!-- Dynamically populated by broadcast-tree.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Algorithmic Theory & Loop Freedom Section -->
+    <section class="sn-card mb-4" id="bt-theory" aria-labelledby="bt-theory-heading">
+      <div class="section-header" style="margin-bottom:var(--space-md);">
+        <div class="section-icon">📚</div>
+        <div>
+          <h2 id="bt-theory-heading" style="font-size:1.25rem;">Broadcast Routing &amp; Spanning Tree Theory</h2>
+          <p>Preventing Broadcast Storms and Eliminating Loops in Packet Switched Networks</p>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-md-6">
+          <h4 style="font-size:0.95rem;color:var(--color-primary);margin-bottom:8px;">1. Spanning Tree Construction (BFS Traversal)</h4>
+          <p style="font-size:0.85rem;line-height:1.6;">
+            A broadcast tree is a subgraph of the network that includes every reachable vertex (node) without containing any cycles.
+            By constructing a tree rooted at the source \(S\), each network node receives exactly one copy of the packet through its designated parent.
+          </p>
+          <div class="formula-block" style="background:var(--bg-surface);border:1px solid var(--border-color);border-radius:var(--border-radius-sm);padding:10px 14px;font-family:var(--font-mono);font-size:0.82rem;color:var(--color-accent);margin:8px 0;">
+            Tree Edges: &nbsp; |E_{tree}| = |V_{reached}| - 1<br/>
+            Redundant Packets Avoided: &nbsp; |E_{total}| - |E_{tree}|
+          </div>
+          <p style="font-size:0.83rem;color:var(--text-secondary);margin-top:6px;">
+            In any connected undirected network of \(N\) nodes, a broadcast tree transmits using exactly \(N - 1\) links, eliminating redundant transmissions.
+          </p>
+        </div>
+
+        <div class="col-md-6">
+          <h4 style="font-size:0.95rem;color:var(--color-accent);margin-bottom:8px;">2. Broadcast Storm Mitigation &amp; Edge Cases</h4>
+          <ul style="font-size:0.84rem;color:var(--text-secondary);line-height:1.7;padding-left:18px;">
+            <li><strong>Broadcast Storm Prevention:</strong> Flooding without a tree causes duplicate transmissions where nodes endlessly re-transmit packets back and forth, consuming all available bandwidth.</li>
+            <li><strong>Cycle Pruning:</strong> Any cycle link discovered during tree traversal is pruned from forwarding, ensuring loop freedom (similar to the Spanning Tree Protocol STP IEEE 802.1D).</li>
+            <li><strong>Network Partitions:</strong> When links are severed, the algorithm cleanly identifies unreachable nodes rather than assuming universal reachability.</li>
+            <li><strong>Role in SMARTNET:</strong> Demonstrates root-oriented broadcast from routers (\(R_1, R_2, R_3\)), end-hosts (\(PC_1\)–\(PC_4\)), and the core Server across the centralized topology.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════
+       TOAST NOTIFICATION COMPONENT
+  ════════════════════════════════════════════════════ -->
+  <div class="sn-toast" id="sn-toast" role="status" aria-live="polite">
+    <span style="font-size:1.2rem;">✅</span>
+    <span id="sn-toast-msg">Operation completed</span>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════════════ -->
+  <footer class="sn-footer" id="sn-footer" role="contentinfo">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="footer-brand">
+            <div class="brand-icon" aria-hidden="true">🌐</div>
+            <span>SMARTNET</span>
+          </div>
+          <p>
+            Network Performance Analyzer &amp;<br/>
+            Security Testing System
+          </p>
+          <p style="margin-top:8px;">7-Member Academic Project</p>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <h5 style="font-size:0.85rem;margin-bottom:12px;color:var(--text-primary);">Navigation</h5>
+          <ul class="footer-links">
+            <li><a href="../../../pages/dashboard.html">Dashboard</a></li>
+            <li><a href="../../../pages/topology.html">Network Topology</a></li>
+            <li><a href="../../../pages/simulations.html">Simulation Lab</a></li>
+            <li><a href="../../../pages/results.html">Results Center</a></li>
+          </ul>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <h5 style="font-size:0.85rem;margin-bottom:12px;color:var(--text-primary);">Module Details</h5>
+          <ul class="footer-links">
+            <li><span style="color:var(--text-muted);font-size:0.82rem;">Module:</span> <strong style="color:var(--color-accent)">Broadcast Tree</strong></li>
+            <li><span style="color:var(--text-muted);font-size:0.82rem;">Category:</span> Routing &amp; Spanning Tree</li>
+            <li><span style="color:var(--text-muted);font-size:0.82rem;">Assigned Member:</span> Member 5 (Ganjikunta Swapna)</li>
+            <li><span style="color:var(--text-muted);font-size:0.82rem;">Architecture:</span> Unified SMARTNET Common Topology</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>&copy; 2026 SMARTNET Project Team. All rights reserved.</p>
+        <p style="color:var(--text-muted);">Common Topology: SERVER - R3 - R1/R2 - PC1..PC4</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- SMARTNET Shared Layers -->
+  <script src="../../../assets/js/navigation.js"></script>
+  <script src="../../../assets/js/integration.js"></script>
+
+  <!-- Broadcast Tree Module JS -->
+  <script src="broadcast-tree.js"></script>
+
+</body>
+</html>
