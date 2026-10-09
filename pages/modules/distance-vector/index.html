@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Distance Vector Routing Simulation — Bellman-Ford distributed routing tables, iterative exchange, convergence and link failure." />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>Distance Vector Routing — SMARTNET</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+
+  <!-- SMARTNET Global Stylesheet -->
+  <link rel="stylesheet" href="../../../assets/css/style.css" />
+
+  <!-- Scoped Styles -->
+  <style>
+    .dv-table-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-sm);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .dv-table-card.active-node {
+      border-color: var(--color-primary);
+      box-shadow: 0 0 10px rgba(79, 142, 247, 0.2);
+    }
+    .dv-updated-cell {
+      background: rgba(6, 214, 160, 0.15) !important;
+      color: var(--color-accent) !important;
+      font-weight: 700;
+      animation: flash 0.8s ease;
+    }
+    .dv-graph-svg {
+      width: 100%;
+      height: 280px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+    }
+    .dv-iter-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+  </style>
+</head>
+
+<body data-page="distanceVector">
+
+  <!-- ═══════════════════════════════════════════════
+       NAVIGATION — injected by navigation.js
+  ════════════════════════════════════════════════════ -->
+  <div id="sn-nav-container"></div>
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE HEADER
+  ════════════════════════════════════════════════════ -->
+  <section class="section-gap-sm" style="background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-base) 100%); position: relative; overflow: hidden;">
+    <div style="position:absolute;top:-30%;right:-10%;width:40%;height:160%;background:radial-gradient(ellipse,rgba(6,214,160,0.06) 0%,transparent 70%);pointer-events:none;"></div>
+    <div class="container">
+      <div class="animate-fade-in-up">
+        <a href="../../dashboard.html" class="btn-secondary-sn" style="padding:6px 14px;font-size:0.78rem;margin-bottom:var(--space-lg);display:inline-flex;" id="btn-back-dashboard" onclick="window.location.href='../../dashboard.html'; return false;">
+          ← Back to Dashboard
+        </a>
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="sn-card-icon green" style="width:52px;height:52px;font-size:1.4rem;">📡</div>
+          <div>
+            <h1 style="font-size:clamp(1.4rem,3vw,2rem);margin:0;" id="page-title">Distance Vector Routing</h1>
+            <p style="margin:4px 0 0;font-size:0.88rem;color:var(--text-secondary);">Distributed Bellman-Ford Routing · Routing Table Convergence</p>
+          </div>
+        </div>
+        <p style="max-width:750px;font-size:0.92rem;line-height:1.7;color:var(--text-secondary);">
+          <strong style="color:var(--text-primary);">Distance Vector Routing</strong> (used in RIP) is a distributed algorithm where
+          each node maintains a vector of distances to all known destinations. At every iteration, neighboring nodes exchange vectors
+          and update their routing tables using the Bellman-Ford equation: <code style="color:var(--color-accent);">D_x(y) = min_v { c(x,v) + D_v(y) }</code>
+          until network convergence is achieved.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       MAIN SIMULATION CONTENT
+  ════════════════════════════════════════════════════ -->
+  <section class="section-gap-sm">
+    <div class="container">
+      <div class="row g-4">
+
+        <!-- ── LEFT: Controls & Link Failure ──────────── -->
+        <div class="col-lg-4">
+          <div class="sn-card animate-fade-in-up">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span style="font-size:1.1rem;">⚙️</span>
+              <h3 style="font-size:1rem;margin:0;color:var(--text-primary);">Simulation Controls</h3>
+            </div>
+
+            <!-- Inspect Node Table -->
+            <div class="mb-3">
+              <label for="dv-inspect-node" class="form-label" style="font-size:0.8rem;">Inspect Node Routing Table</label>
+              <select class="form-select form-select-sm" id="dv-inspect-node">
+                <option value="PC1" selected>PC1</option>
+                <option value="PC2">PC2</option>
+                <option value="PC3">PC3</option>
+                <option value="PC4">PC4</option>
+                <option value="R1">Router R1</option>
+                <option value="R2">Router R2</option>
+                <option value="R3">Router R3</option>
+                <option value="SERVER">Server</option>
+              </select>
+            </div>
+
+            <!-- Failure Injection -->
+            <div class="mb-3">
+              <label for="dv-failure-select" class="form-label" style="font-size:0.8rem;">Network Fault Injection</label>
+              <select class="form-select form-select-sm" id="dv-failure-select">
+                <option value="none" selected>Normal Network (All Links Up)</option>
+                <option value="R3-R1">Sever Link: R3 ↔ R1 (Isolates Left Subnet)</option>
+                <option value="R3-R2">Sever Link: R3 ↔ R2 (Isolates Right Subnet)</option>
+                <option value="SERVER-R3">Sever Link: SERVER ↔ R3</option>
+              </select>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 flex-wrap mb-2">
+              <button class="btn-primary-sn" id="btn-dv-converge" type="button" style="flex:1;">
+                ▶ Run to Convergence
+              </button>
+              <button class="btn-secondary-sn" id="btn-dv-step" type="button" style="padding:8px 12px;">
+                ⏭ Step Iteration
+              </button>
+              <button class="btn-secondary-sn" id="btn-dv-reset" type="button" style="padding:8px 12px;">
+                ↺ Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Mini Topology Map -->
+          <div class="sn-card animate-fade-in-up mt-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span style="font-size:1rem;">🗺️</span>
+              <h4 style="font-size:0.88rem;margin:0;color:var(--text-primary);">Active Topology Map</h4>
+            </div>
+            <svg class="dv-graph-svg" id="dv-svg" viewBox="0 0 400 240"></svg>
+          </div>
+        </div>
+
+        <!-- ── RIGHT: Convergence & Routing Tables ─────── -->
+        <div class="col-lg-8">
+
+          <!-- Convergence Status Banner -->
+          <div class="sn-card animate-fade-in-up mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <div class="d-flex align-items-center gap-2">
+                <span class="dv-iter-badge bg-primary text-white" id="dv-current-iter">Iteration 0 (Init)</span>
+                <span class="sn-badge muted" id="dv-converge-badge">Not Converged</span>
+              </div>
+              <small class="text-muted mt-1 d-block" id="dv-update-summary">Initial direct neighbor cost vector loaded.</small>
+            </div>
+            <div class="text-end">
+              <span class="text-muted" style="font-size:0.75rem;">Total Iterations</span>
+              <div class="fw-bold" style="font-size:1.2rem;color:var(--color-primary);" id="dv-total-steps">0</div>
+            </div>
+          </div>
+
+          <!-- Active Routing Table for Inspected Node -->
+          <div class="sn-card animate-fade-in-up mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="d-flex align-items-center gap-2">
+                <span style="font-size:1rem;">📋</span>
+                <h4 style="font-size:0.95rem;margin:0;color:var(--text-primary);">
+                  Routing Table for <span class="text-primary fw-bold" id="dv-node-title">PC1</span>
+                </h4>
+              </div>
+              <small class="text-muted" style="font-size:0.75rem;">Distance Vector: D(Destination) = Cost, NextHop</small>
+            </div>
+
+            <div class="table-responsive">
+              <table class="sn-table" id="dv-table-inspected" style="font-size:0.82rem;">
+                <thead>
+                  <tr>
+                    <th>Destination</th>
+                    <th>Least Cost</th>
+                    <th>Next Hop</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="dv-tbody-inspected">
+                  <!-- Rendered via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Network-Wide Summary Grid -->
+          <div class="sn-card animate-fade-in-up">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span style="font-size:1rem;">🌐</span>
+              <h4 style="font-size:0.88rem;margin:0;color:var(--text-primary);">Global Reachability Cost Matrix</h4>
+            </div>
+            <div class="table-responsive">
+              <table class="sn-table text-center" id="dv-matrix-table" style="font-size:0.78rem;font-family:var(--font-mono);">
+                <!-- Matrix rendered via JS -->
+              </table>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════════════ -->
+  <footer class="sn-footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top:none;margin-top:0;padding-top:0;">
+        <p>© 2024 SMARTNET — Network Performance Analyzer &amp; Security Testing System</p>
+        <p style="color:var(--text-muted);">Member 4 · Distance Vector Routing Module</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+  <!-- SMARTNET Shared Layers -->
+  <script src="../../../assets/js/navigation.js"></script>
+  <script src="../../../assets/js/integration.js"></script>
+
+  <!-- Module Logic -->
+  <script src="../../../assets/js/modules/distance-vector.js"></script>
+</body>
+</html>
