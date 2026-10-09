@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="NS2 Network Simulation & Performance Analysis Tool — SMARTNET Network Performance Analyzer" />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>NS2 Simulation &amp; Trace Analyzer — SMARTNET</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+
+  <!-- SMARTNET Global Stylesheet -->
+  <link rel="stylesheet" href="../../../assets/css/style.css" />
+
+  <!-- Scoped Styles for NS2 Analyzer -->
+  <style>
+    .ns2-banner {
+      background: rgba(6, 214, 160, 0.08);
+      border: 1px solid rgba(6, 214, 160, 0.25);
+      border-radius: var(--border-radius);
+      padding: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+    .metric-formula {
+      font-family: var(--font-mono);
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .ns2-trace-table-wrapper {
+      max-height: 380px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      background: var(--bg-card);
+    }
+    .ns2-trace-table {
+      margin-bottom: 0;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+    }
+    .ns2-trace-table th {
+      position: sticky;
+      top: 0;
+      background: var(--bg-card-hover);
+      z-index: 2;
+      border-bottom: 2px solid var(--border-color);
+      color: var(--text-muted);
+    }
+    .event-plus { color: #38bdf8; font-weight: 700; }
+    .event-minus { color: #facc15; font-weight: 700; }
+    .event-r { color: #34d399; font-weight: 700; }
+    .event-d { color: #f87171; font-weight: 700; }
+
+    .chart-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--space-md);
+      height: 100%;
+    }
+    .tcl-preview-box {
+      background: #060910;
+      color: #94a3b8;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--space-md);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      max-height: 320px;
+      overflow-y: auto;
+      white-space: pre;
+    }
+  </style>
+</head>
+<body data-page="ns2">
+
+  <!-- Shared Navigation Injection Container -->
+  <div id="sn-nav-container"></div>
+
+  <!-- Page Header -->
+  <header class="sn-page-header">
+    <div class="container">
+      <div class="header-content">
+        <span class="badge-role">Member 7 · Network Analysis Tools</span>
+        <h1 class="header-title">NS2 Simulation &amp; Trace File Analyzer</h1>
+        <p class="header-subtitle">
+          Comprehensive performance evaluation for Network Simulator 2 (NS2) trace outputs, calculating Packet Delivery Ratio (PDR), Packet Loss Ratio (PLR), throughput, and delay metrics.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container my-4">
+
+    <!-- Operating Mode Notice Banner -->
+    <div class="ns2-banner">
+      <div class="d-flex align-items-start gap-3">
+        <div style="font-size: 1.8rem; line-height: 1;">📈</div>
+        <div>
+          <h2 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; color: var(--color-accent);">
+            Operational Modes &amp; Architectural Transparency
+          </h2>
+          <p style="font-size: 0.86rem; color: var(--text-secondary); margin-bottom: 6px;">
+            NS2 (Network Simulator 2) is a native C++/OTcl simulation kernel. In compliance with project guidelines, this module analyzes genuine trace files, calculates academic networking metrics with strict formulas, and provides an OTcl script generator for execution on native NS2 installations.
+          </p>
+          <div class="d-flex flex-wrap gap-2 pt-1">
+            <span class="badge bg-success-subtle text-success border border-success">Mode C: Pre-computed Demonstration Traces</span>
+            <span class="badge bg-primary-subtle text-primary border border-primary">Mode A: Upload Custom NS2 Trace (.tr)</span>
+            <span class="badge bg-info-subtle text-info border border-info">Mode B: OTcl Scenario Generator &amp; Execution</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode Selector & Controls Section -->
+    <section class="card mb-4" aria-labelledby="controls-heading">
+      <div class="card-body">
+        <div class="row g-3 align-items-center">
+
+          <div class="col-lg-4 col-md-6">
+            <label for="ns2-mode-select" class="form-label fw-bold">Select Operating Mode</label>
+            <select class="form-select" id="ns2-mode-select">
+              <option value="demo" selected>Mode C: Demonstration Scenarios</option>
+              <option value="upload">Mode A: Upload Custom Trace File (.tr)</option>
+              <option value="scenario">Mode B: OTcl Scenario Generator</option>
+            </select>
+          </div>
+
+          <!-- Demo Mode Controls -->
+          <div class="col-lg-5 col-md-6" id="panel-ns2-demo">
+            <label for="ns2-demo-select" class="form-label fw-bold">Select Demonstration Trace</label>
+            <div class="d-flex gap-2">
+              <select class="form-select" id="ns2-demo-select">
+                <option value="cbr_udp">Scenario 1: CBR / UDP Streaming (PC1 → Server via R1-R3)</option>
+                <option value="tcp_congestion">Scenario 2: TCP Tahoe Bottleneck &amp; Queue Drop</option>
+                <option value="mixed_traffic">Scenario 3: Multi-flow Mixed Traffic (TCP + UDP)</option>
+              </select>
+              <button class="btn btn-primary text-nowrap" id="btn-load-ns2-demo">
+                <span>⚡</span> Analyze
+              </button>
+            </div>
+          </div>
+
+          <!-- Upload Mode Controls -->
+          <div class="col-lg-5 col-md-6 d-none" id="panel-ns2-upload">
+            <label for="ns2-file-input" class="form-label fw-bold">Upload NS2 Trace File (.tr / .txt)</label>
+            <input class="form-control" type="file" id="ns2-file-input" accept=".tr,.txt,.out" />
+            <small class="text-muted">Supports standard wired and wireless NS2 trace formats.</small>
+          </div>
+
+          <!-- Scenario Designer Controls -->
+          <div class="col-lg-5 col-md-6 d-none" id="panel-ns2-scenario">
+            <label for="ns2-agent-type" class="form-label fw-bold">Configure Simulation Scenario</label>
+            <div class="d-flex gap-2">
+              <select class="form-select" id="ns2-agent-type">
+                <option value="Agent/TCP">TCP Reno / FTP Traffic</option>
+                <option value="Agent/TCP/Tahoe">TCP Tahoe Traffic</option>
+                <option value="Agent/UDP">UDP / CBR Traffic</option>
+              </select>
+              <button class="btn btn-primary text-nowrap" id="btn-generate-tcl">
+                Generate OTcl
+              </button>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-12 text-lg-end">
+            <label class="form-label d-none d-lg-block">&nbsp;</label>
+            <div class="d-flex justify-content-lg-end gap-2">
+              <button class="btn btn-outline-secondary" id="btn-reset-ns2">Reset</button>
+              <button class="btn btn-success" id="btn-save-ns2-results">Save Results</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Key Performance Metrics (Academic Formulas) -->
+    <section class="row g-3 mb-4" aria-label="Performance Metrics">
+      <div class="col-xl-3 col-md-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">PACKET DELIVERY RATIO (PDR)</div>
+          <div class="fs-3 fw-bold text-success mt-1" id="metric-pdr">0.00 %</div>
+          <div class="metric-formula">PDR = (Recv / Sent) × 100%</div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">PACKET LOSS RATIO (PLR)</div>
+          <div class="fs-3 fw-bold text-danger mt-1" id="metric-plr">0.00 %</div>
+          <div class="metric-formula">PLR = (Dropped / Sent) × 100%</div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">AVERAGE THROUGHPUT</div>
+          <div class="fs-3 fw-bold text-primary mt-1" id="metric-throughput">0.00 Kbps</div>
+          <div class="metric-formula">Throughput = (Total Bits / Duration)</div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-md-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">AVERAGE DELAY &amp; JITTER</div>
+          <div class="fs-3 fw-bold text-warning mt-1" id="metric-delay">0.00 ms</div>
+          <div class="metric-formula" id="metric-jitter">Jitter: 0.00 ms</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Secondary Counters -->
+    <section class="row g-3 mb-4">
+      <div class="col-lg-3 col-sm-6">
+        <div class="card p-2 text-center">
+          <div class="text-muted small">Packets Sent (Enqueue)</div>
+          <div class="fs-5 fw-bold text-info" id="metric-sent">0</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-sm-6">
+        <div class="card p-2 text-center">
+          <div class="text-muted small">Packets Received (Dest)</div>
+          <div class="fs-5 fw-bold text-success" id="metric-recv">0</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-sm-6">
+        <div class="card p-2 text-center">
+          <div class="text-muted small">Packets Dropped (DropTail)</div>
+          <div class="fs-5 fw-bold text-danger" id="metric-drop">0</div>
+        </div>
+      </div>
+      <div class="col-lg-3 col-sm-6">
+        <div class="card p-2 text-center">
+          <div class="text-muted small">Simulation Duration</div>
+          <div class="fs-5 fw-bold text-secondary" id="metric-duration">0.00 s</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Performance Charts: Event Breakdown & Throughput Over Time -->
+    <section class="row g-3 mb-4">
+      <div class="col-lg-6">
+        <div class="chart-box">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 style="font-size: 0.95rem; font-weight: 700; color: var(--color-primary-light); margin: 0;">
+              📊 Event Timeline (Sent / Received / Dropped)
+            </h2>
+            <div class="small">
+              <span class="badge" style="background:#38bdf8;">Sent (+)</span>
+              <span class="badge" style="background:#34d399;">Recv (r)</span>
+              <span class="badge" style="background:#f87171;">Drop (d)</span>
+            </div>
+          </div>
+          <div style="height: 190px; position: relative;">
+            <canvas id="canvas-ns2-events" width="500" height="190"></canvas>
+          </div>
+          <div class="text-center text-muted small mt-2">Packet events partitioned across simulation time bins</div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="chart-box">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h2 style="font-size: 0.95rem; font-weight: 700; color: var(--color-primary-light); margin: 0;">
+              📈 Instantaneous Throughput Curve (Kbps)
+            </h2>
+            <span class="badge bg-primary-subtle text-primary border border-primary small">Throughput</span>
+          </div>
+          <div style="height: 190px; position: relative;">
+            <canvas id="canvas-ns2-throughput" width="500" height="190"></canvas>
+          </div>
+          <div class="text-center text-muted small mt-2">Bit rate calculated per sliding time interval</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trace Events Log Table -->
+    <section class="card mb-4" id="section-trace-table">
+      <div class="card-header d-flex justify-content-between align-items-center py-2">
+        <h2 class="h6 mb-0 fw-bold">
+          📜 NS2 Trace File Events (<span id="trace-line-count">0</span> records)
+        </h2>
+        <span class="text-muted small">Standard NS2 format: [Event] [Time] [From] [To] [Type] [Size] [Src] [Dst] [Pkt ID]</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="ns2-trace-table-wrapper">
+          <table class="table table-hover table-striped ns2-trace-table" id="table-ns2-traces">
+            <thead>
+              <tr>
+                <th style="width: 70px;">Event</th>
+                <th style="width: 100px;">Time (s)</th>
+                <th style="width: 90px;">From</th>
+                <th style="width: 90px;">To</th>
+                <th style="width: 90px;">Pkt Type</th>
+                <th style="width: 90px;">Size (B)</th>
+                <th style="width: 120px;">Src Addr</th>
+                <th style="width: 120px;">Dst Addr</th>
+                <th>Packet ID / Seq</th>
+              </tr>
+            </thead>
+            <tbody id="ns2-trace-rows">
+              <tr>
+                <td colspan="9" class="text-center text-muted py-4">No trace loaded. Choose a scenario above or upload a trace file.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- OTcl Script Generator Section (Mode B) -->
+    <section class="card mb-4 d-none" id="section-tcl-script">
+      <div class="card-header d-flex justify-content-between align-items-center py-2">
+        <h2 class="h6 mb-0 fw-bold">⚙️ Generated NS2 OTcl Simulation Script</h2>
+        <button class="btn btn-sm btn-outline-info" id="btn-download-tcl">Download .tcl</button>
+      </div>
+      <div class="card-body">
+        <p class="small text-muted mb-2">
+          This script models the exact SMARTNET organizational topology (PC1-PC4, R1-R3, Server) for execution in native NS-2:
+        </p>
+        <div class="tcl-preview-box" id="tcl-code-view"># Click "Generate OTcl" above to create simulation script</div>
+        <div class="mt-3 p-3 bg-dark rounded border border-secondary small">
+          <div class="fw-bold text-warning mb-1">To execute in your native environment:</div>
+          <code class="text-info">ns smartnet_topology.tcl</code>
+          <div class="text-muted mt-1">This produces <code>out.tr</code> (Trace file) and <code>out.nam</code> (Network Animator file). You can upload the resulting <code>out.tr</code> right here in Mode A to analyze!</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mathematical Formula Reference Card -->
+    <section class="card mb-4">
+      <div class="card-header py-2 fw-bold small">📐 Reference Academic Metric Formulas</div>
+      <div class="card-body small">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <div class="p-2 border rounded bg-dark">
+              <div class="fw-bold text-success mb-1">Packet Delivery Ratio</div>
+              <div class="font-monospace text-muted">PDR = (Recv_pkts / Sent_pkts) × 100%</div>
+              <div class="mt-1 text-muted" style="font-size:0.75rem;">Measures reliability and end-to-end delivery success rate.</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-2 border rounded bg-dark">
+              <div class="fw-bold text-danger mb-1">Packet Loss Ratio</div>
+              <div class="font-monospace text-muted">PLR = (Drop_pkts / Sent_pkts) × 100%</div>
+              <div class="mt-1 text-muted" style="font-size:0.75rem;">Measures congestion severity and queue overflow frequency.</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-2 border rounded bg-dark">
+              <div class="fw-bold text-primary mb-1">Throughput (Kbps)</div>
+              <div class="font-monospace text-muted">TP = (Total_Bytes × 8) / (T_stop - T_start) / 1000</div>
+              <div class="mt-1 text-muted" style="font-size:0.75rem;">Effective network capacity utilized over time.</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-2 border rounded bg-dark">
+              <div class="fw-bold text-warning mb-1">Average End-to-End Delay</div>
+              <div class="font-monospace text-muted">Delay = Σ(T_recv - T_sent) / Recv_pkts</div>
+              <div class="mt-1 text-muted" style="font-size:0.75rem;">Latency taken for packets to traverse hops.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="sn-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© 2024 SMARTNET — Network Performance Analyzer &amp; Security Testing System</p>
+        <p style="color:var(--text-muted);">Member 7 · NS2 Performance Analyzer Module</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+          crossorigin="anonymous"></script>
+
+  <!-- SMARTNET Shared Layers -->
+  <script src="../../../assets/js/navigation.js"></script>
+  <script src="../../../assets/js/integration.js"></script>
+
+  <!-- NS2 Analyzer Logic -->
+  <script src="../../../assets/js/tools/ns2.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Wireshark Packet Capture & Analysis Tool — SMARTNET Network Performance Analyzer & Security Testing System" />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>Wireshark Packet Analyzer — SMARTNET</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+
+  <!-- SMARTNET Global Stylesheet -->
+  <link rel="stylesheet" href="../../../assets/css/style.css" />
+
+  <!-- Scoped Styles for Wireshark Analyzer -->
+  <style>
+    .ws-banner {
+      background: rgba(79, 142, 247, 0.08);
+      border: 1px solid rgba(79, 142, 247, 0.25);
+      border-radius: var(--border-radius);
+      padding: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+    .badge-proto {
+      font-weight: 700;
+      font-size: 0.74rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .proto-tcp { background: rgba(79, 142, 247, 0.2); color: #70a1ff; border: 1px solid rgba(79, 142, 247, 0.4); }
+    .proto-udp { background: rgba(54, 162, 235, 0.2); color: #4bc0c0; border: 1px solid rgba(54, 162, 235, 0.4); }
+    .proto-http { background: rgba(6, 214, 160, 0.2); color: #06d6a0; border: 1px solid rgba(6, 214, 160, 0.4); }
+    .proto-dns { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
+    .proto-icmp { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+    .proto-arp { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+    .proto-other { background: rgba(148, 163, 184, 0.2); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.4); }
+
+    .packet-table-wrapper {
+      max-height: 420px;
+      overflow-y: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      background: var(--bg-card);
+    }
+    .packet-table {
+      margin-bottom: 0;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+    .packet-table tbody tr {
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .packet-table tbody tr:hover {
+      background: rgba(79, 142, 247, 0.12) !important;
+    }
+    .packet-table tbody tr.selected-packet {
+      background: rgba(79, 142, 247, 0.25) !important;
+      border-left: 3px solid var(--color-primary);
+    }
+    .packet-table th {
+      position: sticky;
+      top: 0;
+      background: var(--bg-card-hover);
+      z-index: 2;
+      border-bottom: 2px solid var(--border-color);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .tree-view {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--space-md);
+      max-height: 360px;
+      overflow-y: auto;
+    }
+    .tree-node {
+      margin-bottom: 8px;
+    }
+    .tree-header {
+      font-weight: 700;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.04);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--color-primary-light);
+    }
+    .tree-header:hover {
+      background: rgba(79, 142, 247, 0.15);
+    }
+    .tree-body {
+      padding-left: 20px;
+      margin-top: 4px;
+      border-left: 1px dashed rgba(255, 255, 255, 0.15);
+      margin-left: 8px;
+    }
+    .tree-item {
+      padding: 2px 0;
+      color: var(--text-secondary);
+    }
+
+    .hex-dump-container {
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      background: #060910;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--space-md);
+      max-height: 360px;
+      overflow-y: auto;
+      white-space: pre;
+      line-height: 1.5;
+      color: #94a3b8;
+    }
+    .hex-offset { color: #64748b; }
+    .hex-bytes { color: #38bdf8; }
+    .hex-ascii { color: #34d399; }
+
+    .chart-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--space-md);
+      height: 100%;
+    }
+  </style>
+</head>
+<body data-page="wireshark">
+
+  <!-- Shared Navigation Injection Container -->
+  <div id="sn-nav-container"></div>
+
+  <!-- Page Header -->
+  <header class="sn-page-header">
+    <div class="container">
+      <div class="header-content">
+        <span class="badge-role">Member 7 · Network Analysis Tools</span>
+        <h1 class="header-title">Wireshark Packet Capture &amp; Analysis</h1>
+        <p class="header-subtitle">
+          Comprehensive packet inspection, protocol breakdown, traffic flow statistics, and deep-packet inspection for the SMARTNET topology.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container my-4">
+
+    <!-- Operating Mode Notice Banner -->
+    <div class="ws-banner">
+      <div class="d-flex align-items-start gap-3">
+        <div style="font-size: 1.8rem; line-height: 1;">🦈</div>
+        <div>
+          <h2 style="font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; color: var(--color-primary-light);">
+            Operational Modes &amp; Environment Disclosure
+          </h2>
+          <p style="font-size: 0.86rem; color: var(--text-secondary); margin-bottom: 6px;">
+            In accordance with web security sandbox principles, a browser cannot independently perform unrestricted native raw socket packet capture. This module provides three robust operating modes:
+          </p>
+          <div class="d-flex flex-wrap gap-2 pt-1">
+            <span class="badge bg-primary-subtle text-primary border border-primary">Mode A: Upload PCAP / PCAPNG / JSON</span>
+            <span class="badge bg-info-subtle text-info border border-info">Mode B: Import TShark CLI Output</span>
+            <span class="badge bg-success-subtle text-success border border-success">Mode C: Pre-configured Topology Demonstration</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mode Selector & Controls Section -->
+    <section class="card mb-4" aria-labelledby="controls-heading">
+      <div class="card-body">
+        <div class="row g-3 align-items-center">
+
+          <div class="col-lg-4 col-md-6">
+            <label for="ws-mode-select" class="form-label fw-bold">Select Operating Mode</label>
+            <select class="form-select" id="ws-mode-select">
+              <option value="demo" selected>Mode C: Demonstration Scenario</option>
+              <option value="upload">Mode A: Upload .pcap / .pcapng / .json</option>
+              <option value="tshark">Mode B: Import TShark Output (Paste)</option>
+            </select>
+          </div>
+
+          <!-- Demo Mode Controls -->
+          <div class="col-lg-5 col-md-6" id="panel-mode-demo">
+            <label for="ws-demo-scenario" class="form-label fw-bold">Demonstration Scenario</label>
+            <div class="d-flex gap-2">
+              <select class="form-select" id="ws-demo-scenario">
+                <option value="smartnet_traffic">SmartNet Topology: HTTP, DNS &amp; ICMP (PC1 -> Server)</option>
+                <option value="syn_flood">Security Audit: TCP SYN Flood Attack Trace</option>
+                <option value="network_diagnostics">Diagnostic Suite: ARP Resolution &amp; Echo Traceroute</option>
+              </select>
+              <button class="btn btn-primary text-nowrap" id="btn-load-demo">
+                <span>⚡</span> Load Scenario
+              </button>
+            </div>
+          </div>
+
+          <!-- Upload Mode Controls -->
+          <div class="col-lg-5 col-md-6 d-none" id="panel-mode-upload">
+            <label for="ws-file-input" class="form-label fw-bold">Upload Capture File</label>
+            <input class="form-control" type="file" id="ws-file-input" accept=".pcap,.cap,.pcapng,.json,.txt" />
+            <small class="text-muted">Supports Libpcap (.pcap), PcapNG, and Wireshark JSON export.</small>
+          </div>
+
+          <!-- TShark Mode Controls -->
+          <div class="col-lg-5 col-md-6 d-none" id="panel-mode-tshark">
+            <label for="ws-tshark-input" class="form-label fw-bold">Paste TShark Text / JSON</label>
+            <div class="d-flex gap-2">
+              <input type="text" class="form-control" id="ws-tshark-input" placeholder="Paste tshark summary or json..." />
+              <button class="btn btn-primary text-nowrap" id="btn-parse-tshark">
+                Parse
+              </button>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-12 text-lg-end">
+            <label class="form-label d-none d-lg-block">&nbsp;</label>
+            <div class="d-flex justify-content-lg-end gap-2">
+              <button class="btn btn-outline-secondary" id="btn-reset-ws">Reset</button>
+              <button class="btn btn-success" id="btn-save-results">Save Results</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter and Search Toolbar -->
+    <section class="card mb-4" aria-labelledby="filter-heading">
+      <div class="card-body py-3">
+        <div class="row g-2 align-items-center">
+          <div class="col-auto">
+            <span class="fw-bold" style="font-size: 0.9rem; color: var(--color-primary);">Filter:</span>
+          </div>
+          <div class="col-md-5 col-sm-12">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-dark border-secondary text-muted">Expression</span>
+              <input type="text" class="form-control form-control-sm font-monospace" id="ws-filter-expr"
+                     placeholder="e.g. tcp, udp, dns, http, ip.src == 192.168.1.10" />
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <select class="form-select form-select-sm" id="ws-filter-proto">
+              <option value="">All Protocols</option>
+              <option value="TCP">TCP Only</option>
+              <option value="UDP">UDP Only</option>
+              <option value="HTTP">HTTP Only</option>
+              <option value="DNS">DNS Only</option>
+              <option value="ICMP">ICMP Only</option>
+              <option value="ARP">ARP Only</option>
+            </select>
+          </div>
+          <div class="col-md-3 col-sm-6 d-flex gap-2 justify-content-end">
+            <button class="btn btn-sm btn-outline-primary" id="btn-apply-filter">Apply Filter</button>
+            <button class="btn btn-sm btn-outline-secondary" id="btn-clear-filter">Clear</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Summary Metrics Dashboard -->
+    <section class="row g-3 mb-4" aria-label="Capture Summary Metrics">
+      <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">TOTAL PACKETS</div>
+          <div class="fs-4 fw-bold text-primary mt-1" id="stat-total-packets">0</div>
+          <div class="text-muted" style="font-size: 0.72rem;" id="stat-visible-packets">Showing 0</div>
+        </div>
+      </div>
+      <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">TOTAL BYTES</div>
+          <div class="fs-4 fw-bold text-info mt-1" id="stat-total-bytes">0 B</div>
+          <div class="text-muted" style="font-size: 0.72rem;" id="stat-avg-size">Avg: 0 B</div>
+        </div>
+      </div>
+      <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">DURATION</div>
+          <div class="fs-4 fw-bold text-success mt-1" id="stat-duration">0.00 s</div>
+          <div class="text-muted" style="font-size: 0.72rem;" id="stat-rate">Rate: 0 pkt/s</div>
+        </div>
+      </div>
+      <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">TCP PACKETS</div>
+          <div class="fs-4 fw-bold text-warning mt-1" id="stat-tcp-count">0</div>
+          <div class="text-muted" style="font-size: 0.72rem;" id="stat-tcp-pct">0%</div>
+        </div>
+      </div>
+      <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">UDP PACKETS</div>
+          <div class="fs-4 fw-bold text-danger mt-1" id="stat-udp-count">0</div>
+          <div class="text-muted" style="font-size: 0.72rem;" id="stat-udp-pct">0%</div>
+        </div>
+      </div>
+      <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">OTHER PROTO</div>
+          <div class="fs-4 fw-bold text-secondary mt-1" id="stat-other-count">0</div>
+          <div class="text-muted" style="font-size: 0.72rem;" id="stat-other-pct">0%</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visual Charts: Protocol Breakdown & Traffic Flow -->
+    <section class="row g-3 mb-4">
+      <div class="col-lg-6">
+        <div class="chart-box">
+          <h2 style="font-size: 0.95rem; font-weight: 700; color: var(--color-primary-light); margin-bottom: 12px;">
+            📊 Protocol Distribution
+          </h2>
+          <div style="height: 180px; position: relative;">
+            <canvas id="canvas-proto-chart" width="500" height="180"></canvas>
+          </div>
+          <div class="d-flex justify-content-center flex-wrap gap-3 mt-2" id="chart-proto-legend"></div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="chart-box">
+          <h2 style="font-size: 0.95rem; font-weight: 700; color: var(--color-primary-light); margin-bottom: 12px;">
+            📈 Packet Activity Timeline (Packets / Sec)
+          </h2>
+          <div style="height: 180px; position: relative;">
+            <canvas id="canvas-timeline-chart" width="500" height="180"></canvas>
+          </div>
+          <div class="text-center text-muted small mt-2">Time in seconds across capture duration</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Packet List Table -->
+    <section class="card mb-4" aria-labelledby="packet-list-heading">
+      <div class="card-header d-flex justify-content-between align-items-center py-2">
+        <h2 id="packet-list-heading" class="h6 mb-0 fw-bold">
+          📦 Packet List (<span id="count-filtered">0</span> / <span id="count-total">0</span> displayed)
+        </h2>
+        <span class="text-muted small">Click any packet to inspect details &amp; hex dump</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="packet-table-wrapper">
+          <table class="table table-hover table-striped packet-table" id="table-packets">
+            <thead>
+              <tr>
+                <th style="width: 70px;">No.</th>
+                <th style="width: 100px;">Time</th>
+                <th style="width: 180px;">Source</th>
+                <th style="width: 180px;">Destination</th>
+                <th style="width: 90px;">Protocol</th>
+                <th style="width: 80px;">Length</th>
+                <th>Info</th>
+              </tr>
+            </thead>
+            <tbody id="ws-packet-rows">
+              <tr>
+                <td colspan="7" class="text-center text-muted py-4">No packet capture loaded. Click "Load Scenario" above or upload a capture file.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Deep Packet Inspection: Tree View & Hex Dump -->
+    <section class="row g-3 mb-4" id="section-packet-details">
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header py-2 d-flex justify-content-between align-items-center">
+            <span class="fw-bold small">🔍 Packet Tree Dissection</span>
+            <span class="badge bg-secondary" id="tree-selected-badge">No Packet Selected</span>
+          </div>
+          <div class="card-body p-2">
+            <div class="tree-view" id="packet-tree-view">
+              <div class="text-muted text-center py-5">
+                Select a packet from the table above to inspect Ethernet, IP, and Transport layer headers.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-6">
+        <div class="card h-100">
+          <div class="card-header py-2 d-flex justify-content-between align-items-center">
+            <span class="fw-bold small">💾 Packet Hex &amp; ASCII Dump</span>
+            <span class="text-muted small" id="hex-len-badge">0 bytes</span>
+          </div>
+          <div class="card-body p-2">
+            <div class="hex-dump-container" id="packet-hex-view">0000  -- Select a packet above to view hexadecimal and ASCII bytes --</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Top Talkers & Host Statistics -->
+    <section class="row g-3 mb-4">
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-header py-2 fw-bold small">🌐 Top Source Hosts (Talkers)</div>
+          <div class="card-body p-0">
+            <table class="table table-sm table-striped mb-0 font-monospace small">
+              <thead>
+                <tr><th>Host / IP</th><th class="text-end">Packets</th><th class="text-end">Total Bytes</th></tr>
+              </thead>
+              <tbody id="table-top-sources">
+                <tr><td colspan="3" class="text-muted text-center py-2">No data</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card h-100">
+          <div class="card-header py-2 fw-bold small">🎯 Top Destination Hosts</div>
+          <div class="card-body p-0">
+            <table class="table table-sm table-striped mb-0 font-monospace small">
+              <thead>
+                <tr><th>Host / IP</th><th class="text-end">Packets</th><th class="text-end">Total Bytes</th></tr>
+              </thead>
+              <tbody id="table-top-destinations">
+                <tr><td colspan="3" class="text-muted text-center py-2">No data</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="sn-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© 2024 SMARTNET — Network Performance Analyzer &amp; Security Testing System</p>
+        <p style="color:var(--text-muted);">Member 7 · Wireshark Packet Analyzer Module</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+          crossorigin="anonymous"></script>
+
+  <!-- SMARTNET Shared Layers -->
+  <script src="../../../assets/js/navigation.js"></script>
+  <script src="../../../assets/js/integration.js"></script>
+
+  <!-- Wireshark Analyzer Logic -->
+  <script src="../../../assets/js/tools/wireshark.js"></script>
+
+</body>
+</html>
