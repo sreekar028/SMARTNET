@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Go-Back-N ARQ Simulation — Pipelined Transmission, Cumulative Acknowledgment, Frame Loss, Timeout & Go-Back-N Retransmissions." />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>Go-Back-N ARQ Simulation — SMARTNET</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+
+  <!-- SMARTNET Global Stylesheet -->
+  <link rel="stylesheet" href="../../../assets/css/style.css" />
+
+  <!-- Module-specific styles (scoped) -->
+  <style>
+    .gbn-frame-track {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 12px 6px;
+      position: relative;
+    }
+    .gbn-frame-card {
+      min-width: 68px;
+      padding: 10px 8px;
+      background: var(--bg-surface);
+      border: 2px solid var(--border-color);
+      border-radius: var(--border-radius-sm);
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    .gbn-frame-card.in-window {
+      border-color: var(--color-primary);
+      background: rgba(79, 142, 247, 0.08);
+      box-shadow: 0 0 12px rgba(79, 142, 247, 0.2);
+    }
+    .gbn-frame-card.in-flight {
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+    }
+    .gbn-frame-card.acked {
+      border-color: var(--color-accent);
+      background: rgba(6, 214, 160, 0.12);
+      color: var(--color-accent);
+    }
+    .gbn-frame-card.lost {
+      border-color: var(--color-danger);
+      background: rgba(239, 71, 111, 0.2);
+      color: var(--color-danger);
+      animation: shake 0.4s ease;
+    }
+    .gbn-frame-card.discarded {
+      border-color: #8b5cf6;
+      background: rgba(139, 92, 246, 0.15);
+      color: #c4b5fd;
+    }
+    .gbn-channel-container {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 20px;
+      margin: 16px 0;
+      position: relative;
+      min-height: 190px;
+      overflow: hidden;
+    }
+    .gbn-endpoint-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 95px;
+      height: 95px;
+      border-radius: 12px;
+      background: var(--bg-card);
+      border: 2px solid var(--border-color-light);
+      font-weight: 700;
+      font-size: 0.9rem;
+      z-index: 2;
+    }
+    .gbn-node-sender { border-color: var(--color-primary); }
+    .gbn-node-receiver { border-color: var(--color-accent); }
+    .gbn-transit-item {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      font-weight: 700;
+      z-index: 10;
+      transition: left 0.8s ease-in-out, opacity 0.4s ease;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    }
+    .gbn-transit-frame {
+      background: #1e3a8a;
+      color: #93c5fd;
+      border: 1px solid #3b82f6;
+    }
+    .gbn-transit-lost {
+      background: #881337;
+      color: #fda4af;
+      border: 1px solid #f43f5e;
+    }
+    .gbn-transit-ack {
+      background: #064e3b;
+      color: #6ee7b7;
+      border: 1px solid #10b981;
+    }
+    .gbn-log-box {
+      max-height: 250px;
+      overflow-y: auto;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+    }
+    .gbn-log-entry {
+      padding: 4px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+    .gbn-log-time { color: var(--text-muted); font-size: 0.72rem; min-width: 55px; }
+    .gbn-timer-bar {
+      height: 4px;
+      background: var(--color-primary);
+      width: 100%;
+      border-radius: 2px;
+      transition: width 0.1s linear;
+    }
+  </style>
+</head>
+
+<body data-page="goBackN">
+
+  <!-- ═══════════════════════════════════════════════
+       NAVIGATION — injected by navigation.js
+  ════════════════════════════════════════════════════ -->
+  <div id="sn-nav-container"></div>
+
+  <!-- ═══════════════════════════════════════════════
+       PAGE HEADER
+  ════════════════════════════════════════════════════ -->
+  <section class="section-gap-sm" style="background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-base) 100%); position: relative; overflow: hidden;">
+    <div style="position:absolute;top:-30%;right:-10%;width:40%;height:160%;background:radial-gradient(ellipse,rgba(245,158,11,0.06) 0%,transparent 70%);pointer-events:none;"></div>
+    <div class="container">
+      <div class="animate-fade-in-up">
+        <a href="../../dashboard.html" class="btn-secondary-sn" style="padding:6px 14px;font-size:0.78rem;margin-bottom:var(--space-lg);display:inline-flex;" id="btn-back-dashboard" onclick="window.location.href='../../dashboard.html'; return false;">
+          ← Back to Dashboard
+        </a>
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="sn-card-icon yellow" style="width:52px;height:52px;font-size:1.4rem;">↩️</div>
+          <div>
+            <h1 style="font-size:clamp(1.4rem,3vw,2rem);margin:0;" id="page-title">Go-Back-N ARQ Simulation</h1>
+            <p style="margin:4px 0 0;font-size:0.88rem;color:var(--text-secondary);">Automatic Repeat reQuest · Cumulative ACKs · Loss &amp; Retransmission</p>
+          </div>
+        </div>
+        <p style="max-width:750px;font-size:0.92rem;line-height:1.7;color:var(--text-secondary);">
+          In <strong style="color:var(--text-primary);">Go-Back-N (GBN)</strong>, the sender can transmit up to <strong style="color:var(--color-primary);">N</strong> unacknowledged frames.
+          The receiver accepts <strong style="color:var(--color-accent);">only in-order frames</strong> and discards out-of-order frames. If a frame is lost, a timeout triggers
+          the sender to <strong>go back</strong> and retransmit all unacknowledged frames starting from the lost one.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       MAIN SIMULATION CONTENT
+  ════════════════════════════════════════════════════ -->
+  <section class="section-gap-sm">
+    <div class="container">
+      <div class="row g-4">
+
+        <!-- ── LEFT: Controls & Error Scenarios ────────── -->
+        <div class="col-lg-4">
+          <div class="sn-card animate-fade-in-up">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <span style="font-size:1.1rem;">⚙️</span>
+              <h3 style="font-size:1rem;margin:0;color:var(--text-primary);">GBN Parameters</h3>
+            </div>
+
+            <!-- Total Frames -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <label for="gbn-total-frames" class="form-label" style="font-size:0.8rem;">Total Frames</label>
+                <span class="text-primary fw-bold" id="gbn-val-frames">10</span>
+              </div>
+              <input type="range" class="form-range" id="gbn-total-frames" min="5" max="15" value="10" />
+            </div>
+
+            <!-- Window Size N -->
+            <div class="mb-3">
+              <div class="d-flex justify-content-between">
+                <label for="gbn-window-size" class="form-label" style="font-size:0.8rem;">Window Size (N)</label>
+                <span class="text-primary fw-bold" id="gbn-val-window">4</span>
+              </div>
+              <input type="range" class="form-range" id="gbn-window-size" min="2" max="6" value="4" />
+              <div class="form-text" style="font-size:0.72rem;color:var(--text-muted);">Max outstanding frames</div>
+            </div>
+
+            <!-- Error Injection Scenario -->
+            <div class="mb-3">
+              <label for="gbn-loss-scenario" class="form-label" style="font-size:0.8rem;">Error Injection Scenario</label>
+              <select class="form-select form-select-sm" id="gbn-loss-scenario">
+                <option value="none" selected>No Loss (Ideal Channel)</option>
+                <option value="frame-2">Drop Frame #2 (Triggers Go-Back-N)</option>
+                <option value="frame-4">Drop Frame #4</option>
+                <option value="ack-lost">Drop Cumulative ACK #2</option>
+              </select>
+              <div class="form-text" style="font-size:0.72rem;color:var(--text-muted);">Choose deterministic fault injection</div>
+            </div>
+
+            <!-- Simulation Speed -->
+            <div class="mb-3">
+              <label for="gbn-speed-select" class="form-label" style="font-size:0.8rem;">Simulation Speed</label>
+              <select class="form-select form-select-sm" id="gbn-speed-select">
+                <option value="1200">Slow (1.2s)</option>
+                <option value="800" selected>Normal (0.8s)</option>
+                <option value="400">Fast (0.4s)</option>
+              </select>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 flex-wrap mb-2">
+              <button class="btn-primary-sn" id="btn-gbn-start" type="button" style="flex:1;">
+                ▶ Start GBN
+              </button>
+              <button class="btn-secondary-sn" id="btn-gbn-step" type="button" style="padding:8px 12px;">
+                ⏭ Step
+              </button>
+              <button class="btn-secondary-sn" id="btn-gbn-reset" type="button" style="padding:8px 12px;">
+                ↺ Reset
+              </button>
+            </div>
+          </div>
+
+          <!-- Protocol Rules Card -->
+          <div class="sn-card animate-fade-in-up mt-3">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <span style="font-size:1rem;">⚠️</span>
+              <h4 style="font-size:0.88rem;margin:0;color:var(--text-primary);">Why Retransmit N Frames?</h4>
+            </div>
+            <p style="font-size:0.82rem;color:var(--text-secondary);line-height:1.6;margin:0;">
+              Because the receiver has a <strong>window size of 1</strong> and only accepts the exact next in-order frame. Any subsequent frames that arrive out-of-order are <strong>discarded</strong>.
+              When the sender's timeout timer expires, it must go back and retransmit <em>all</em> frames from the lost frame onward.
+            </p>
+          </div>
+        </div>
+
+        <!-- ── RIGHT: Visualizer & Channel ────────────── -->
+        <div class="col-lg-8">
+
+          <!-- Sender Window Track Card -->
+          <div class="sn-card animate-fade-in-up">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div class="d-flex align-items-center gap-2">
+                <span style="font-size:1rem;">📦</span>
+                <h3 style="font-size:0.95rem;margin:0;color:var(--text-primary);">Sender Frame Pipeline [Base, NextSeqNum]</h3>
+              </div>
+              <span class="sn-badge muted" id="gbn-status-badge">Ready</span>
+            </div>
+
+            <!-- Frame Track -->
+            <div class="gbn-frame-track" id="gbn-frame-track">
+              <!-- Rendered via JS -->
+            </div>
+
+            <!-- Legend -->
+            <div class="d-flex gap-3 flex-wrap mt-2 pt-2 border-top border-secondary border-opacity-25" style="font-size:0.75rem;">
+              <div class="d-flex align-items-center gap-1"><span style="width:10px;height:10px;border-radius:2px;background:rgba(79,142,247,0.4);border:1px solid var(--color-primary);display:inline-block;"></span> In Window</div>
+              <div class="d-flex align-items-center gap-1"><span style="width:10px;height:10px;border-radius:2px;background:#f59e0b;display:inline-block;"></span> In Transit</div>
+              <div class="d-flex align-items-center gap-1"><span style="width:10px;height:10px;border-radius:2px;background:var(--color-danger);display:inline-block;"></span> Lost / Dropped</div>
+              <div class="d-flex align-items-center gap-1"><span style="width:10px;height:10px;border-radius:2px;background:#8b5cf6;display:inline-block;"></span> Discarded (Out of order)</div>
+              <div class="d-flex align-items-center gap-1"><span style="width:10px;height:10px;border-radius:2px;background:var(--color-accent);display:inline-block;"></span> Cumulative ACKed</div>
+            </div>
+          </div>
+
+          <!-- Channel Animation -->
+          <div class="sn-card gbn-channel-container d-flex justify-content-between align-items-center mt-3 animate-fade-in-up" id="gbn-channel-container">
+            <!-- Sender Endpoint -->
+            <div class="gbn-endpoint-node gbn-node-sender text-center" id="gbn-sender-node">
+              <span style="font-size:1.4rem;">💻</span>
+              <div>Sender</div>
+              <div class="mt-1" style="font-size:0.65rem;color:var(--color-primary);" id="gbn-sender-timer-label">Timer: Off</div>
+            </div>
+
+            <!-- Channel Path Center -->
+            <div style="flex:1;position:relative;margin:0 20px;height:70px;border-bottom:2px dashed rgba(245,158,11,0.3);display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:0.72rem;color:var(--text-muted);background:var(--bg-surface);padding:2px 8px;border-radius:4px;" id="gbn-channel-label">
+                Noisy Half/Full Duplex Channel
+              </span>
+              <div id="gbn-flight-layer" style="position:absolute;width:100%;height:100%;top:0;left:0;pointer-events:none;"></div>
+            </div>
+
+            <!-- Receiver Endpoint -->
+            <div class="gbn-endpoint-node gbn-node-receiver text-center" id="gbn-receiver-node">
+              <span style="font-size:1.4rem;">🖥️</span>
+              <div>Receiver</div>
+              <div class="mt-1" style="font-size:0.65rem;color:var(--color-accent);" id="gbn-rx-expected">Expected: #0</div>
+            </div>
+          </div>
+
+          <!-- Real-time Metrics & Event Log -->
+          <div class="row g-3 mt-1">
+            <div class="col-md-5">
+              <div class="sn-card h-100">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                  <span style="font-size:1rem;">📊</span>
+                  <h4 style="font-size:0.88rem;margin:0;color:var(--text-primary);">GBN Metrics</h4>
+                </div>
+                <table class="sn-table" style="font-size:0.82rem;">
+                  <tbody>
+                    <tr><td class="text-muted">Window [Base, Next]</td><td id="m-gbn-window" class="text-end fw-bold">[0, 0]</td></tr>
+                    <tr><td class="text-muted">Expected by Receiver</td><td id="m-gbn-expected" class="text-end fw-bold text-success">#0</td></tr>
+                    <tr><td class="text-muted">Total Transmissions</td><td id="m-gbn-attempts" class="text-end">0</td></tr>
+                    <tr><td class="text-muted">Retransmissions</td><td id="m-gbn-retrans" class="text-end text-warning fw-bold">0</td></tr>
+                    <tr><td class="text-muted">Discarded Packets</td><td id="m-gbn-discarded" class="text-end text-danger">0</td></tr>
+                    <tr><td class="text-muted">Cumulative ACKs</td><td id="m-gbn-acks" class="text-end text-accent">0</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="col-md-7">
+              <div class="sn-card h-100">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <span style="font-size:1rem;">📋</span>
+                    <h4 style="font-size:0.88rem;margin:0;color:var(--text-primary);">Event Timeline</h4>
+                  </div>
+                  <button class="btn btn-sm btn-link text-muted p-0 text-decoration-none" id="btn-gbn-clear-log" style="font-size:0.75rem;">Clear</button>
+                </div>
+                <div class="gbn-log-box" id="gbn-log-box">
+                  <div class="gbn-log-entry text-muted"><span class="gbn-log-time">00:00.0</span> System ready. Choose error scenario and press Start.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════════
+       FOOTER
+  ════════════════════════════════════════════════════ -->
+  <footer class="sn-footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top:none;margin-top:0;padding-top:0;">
+        <p>© 2024 SMARTNET — Network Performance Analyzer &amp; Security Testing System</p>
+        <p style="color:var(--text-muted);">Member 3 · Go-Back-N ARQ Module</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+  <!-- SMARTNET Shared Layers -->
+  <script src="../../../assets/js/navigation.js"></script>
+  <script src="../../../assets/js/integration.js"></script>
+
+  <!-- Module Logic -->
+  <script src="../../../assets/js/modules/go-back-n.js"></script>
+</body>
+</html>
