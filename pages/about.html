@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="About SMARTNET — Network Performance Analyzer and Security Testing System project overview, architecture, modules, and academic learning outcomes." />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>About — SMARTNET</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+
+  <!-- SMARTNET Global Stylesheet -->
+  <link rel="stylesheet" href="../assets/css/style.css" />
+
+  <!-- About Page Scoped Styles -->
+  <style>
+    .about-hero {
+      background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-base) 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: var(--space-xl) 0 var(--space-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    .about-hero::before {
+      content: '';
+      position: absolute;
+      top: -30%; right: -10%;
+      width: 45%; height: 160%;
+      background: radial-gradient(ellipse, rgba(6, 214, 160, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .about-section-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+      transition: var(--transition-normal);
+    }
+    .about-section-card:hover {
+      border-color: var(--border-color-light);
+    }
+    .category-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: var(--space-md);
+      padding-bottom: var(--space-sm);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .category-header h3 {
+      font-size: 1.15rem;
+      margin: 0;
+      color: var(--color-primary-light);
+    }
+    .module-item {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--space-md);
+      height: 100%;
+      transition: var(--transition-fast);
+    }
+    .module-item:hover {
+      border-color: var(--border-color-light);
+      transform: translateY(-2px);
+      background: var(--bg-card-hover);
+    }
+    .tech-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(79, 142, 247, 0.08);
+      border: 1px solid rgba(79, 142, 247, 0.25);
+      border-radius: var(--border-radius);
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .tech-badge .tech-icon {
+      font-size: 1.15rem;
+    }
+    .team-table {
+      font-size: 0.86rem;
+      margin-bottom: 0;
+    }
+    .team-table th {
+      background: var(--bg-surface);
+      color: var(--text-muted);
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 16px;
+    }
+    .team-table td {
+      padding: 12px 16px;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .academic-meta-box {
+      background: #060910;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--space-md);
+      font-size: 0.84rem;
+    }
+  </style>
+</head>
+<body data-page="about">
+
+  <!-- Shared Navigation Injection Container -->
+  <div id="sn-nav-container"></div>
+
+  <!-- Hero Header -->
+  <header class="about-hero">
+    <div class="container">
+      <a href="dashboard.html" class="btn-secondary-sn mb-3 d-inline-flex align-items-center gap-1" style="font-size:0.8rem;padding:4px 12px;">
+        ← Dashboard
+      </a>
+      <div class="d-flex align-items-center gap-3">
+        <div class="sn-card-icon green" style="width:52px;height:52px;font-size:1.5rem;">ℹ️</div>
+        <div>
+          <h1 style="font-size:clamp(1.6rem, 3.5vw, 2.2rem);margin:0;">About SMARTNET</h1>
+          <p style="margin:4px 0 0;font-size:0.9rem;color:var(--text-secondary);">
+            Network Performance Analyzer &amp; Security Testing System
+          </p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container my-4">
+
+    <!-- 1. Project Overview Section -->
+    <section class="about-section-card" aria-labelledby="overview-heading">
+      <h2 id="overview-heading" style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">
+        🌐 Project Overview
+      </h2>
+      <p style="line-height: 1.7; font-size: 0.92rem; color: var(--text-secondary); margin-bottom: 12px;">
+        The <strong style="color:var(--text-primary);">Network Performance Analyzer and Security Testing System (SMARTNET)</strong> is a unified, educational web-based platform engineered to provide deep practical insight into core computer networking principles, transport flow control mechanisms, distributed routing algorithms, traffic policing, and packet-level network diagnostics.
+      </p>
+      <p style="line-height: 1.7; font-size: 0.92rem; color: var(--text-secondary); margin-bottom: 0;">
+        Operating on a shared, centralized organizational topology (comprising Client PCs, Core Routers, Subnet Routers, and an Enterprise Server), SMARTNET eliminates fragmented standalone demos by offering synchronized simulation runs, consistent link metrics, and centralized telemetry in an interactive browser environment.
+      </p>
+    </section>
+
+    <!-- 2. Project Objectives Section -->
+    <section class="about-section-card" aria-labelledby="objectives-heading">
+      <h2 id="objectives-heading" style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">
+        🎯 Project Objectives
+      </h2>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <div class="d-flex align-items-start gap-3 p-3 rounded" style="background:var(--bg-surface);border:1px solid var(--border-color);">
+            <div style="font-size:1.4rem;">📦</div>
+            <div>
+              <strong style="color:var(--text-primary);font-size:0.92rem;">Interactive Framing &amp; Error Detection</strong>
+              <div class="text-muted small mt-1">Visualize data link layer framing (Character Count, Byte Stuffing, Bit Stuffing) and mathematical binary polynomial division for CRC error verification.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="d-flex align-items-start gap-3 p-3 rounded" style="background:var(--bg-surface);border:1px solid var(--border-color);">
+            <div style="font-size:1.4rem;">🪟</div>
+            <div>
+              <strong style="color:var(--text-primary);font-size:0.92rem;">Flow Control &amp; Retransmission Logic</strong>
+              <div class="text-muted small mt-1">Simulate sliding window pipelining and Go-Back-N ARQ cumulative acknowledgments, frame loss, timeout backoff, and retransmission mechanisms.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="d-flex align-items-start gap-3 p-3 rounded" style="background:var(--bg-surface);border:1px solid var(--border-color);">
+            <div style="font-size:1.4rem;">🗺️</div>
+            <div>
+              <strong style="color:var(--text-primary);font-size:0.92rem;">Comparative Routing Algorithms</strong>
+              <div class="text-muted small mt-1">Compute and visualize link-state shortest paths via Dijkstra’s algorithm and distributed routing table exchange and convergence via Distance Vector (Bellman-Ford).</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="d-flex align-items-start gap-3 p-3 rounded" style="background:var(--bg-surface);border:1px solid var(--border-color);">
+            <div style="font-size:1.4rem;">🌳</div>
+            <div>
+              <strong style="color:var(--text-primary);font-size:0.92rem;">Broadcast Trees &amp; Congestion Control</strong>
+              <div class="text-muted small mt-1">Model loop-free broadcast delivery trees and evaluate Leaky Bucket traffic shaping, packet drop thresholds, and buffer policing dynamics.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="d-flex align-items-start gap-3 p-3 rounded" style="background:var(--bg-surface);border:1px solid var(--border-color);">
+            <div style="font-size:1.4rem;">🔒</div>
+            <div>
+              <strong style="color:var(--text-primary);font-size:0.92rem;">Cryptographic Concepts &amp; Security Auditing</strong>
+              <div class="text-muted small mt-1">Illustrate symmetric and asymmetric encryption transforms, alongside authorized port scanning and security audits with Nmap.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-6">
+          <div class="d-flex align-items-start gap-3 p-3 rounded" style="background:var(--bg-surface);border:1px solid var(--border-color);">
+            <div style="font-size:1.4rem;">🔬</div>
+            <div>
+              <strong style="color:var(--text-primary);font-size:0.92rem;">Deep Packet Inspection &amp; NS2 Analysis</strong>
+              <div class="text-muted small mt-1">Dissect genuine Libpcap captures, inspect protocol headers, and calculate academic NS-2 simulation metrics (PDR, PLR, throughput, delay).</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Module Overview (Categorized) -->
+    <section class="about-section-card" aria-labelledby="modules-heading">
+      <h2 id="modules-heading" style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 20px;">
+        🧩 Integrated System Modules
+      </h2>
+
+      <!-- Category 1: Protocol and Flow Control -->
+      <div class="mb-4">
+        <div class="category-header">
+          <span>📦</span>
+          <h3>Protocol &amp; Flow Control</h3>
+        </div>
+        <div class="row g-3">
+          <div class="col-lg-3 col-md-6">
+            <div class="module-item">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong style="color:var(--color-primary)">Framing</strong>
+                <span class="badge bg-secondary small">Layer 2</span>
+              </div>
+              <p class="small text-muted mb-2">Character Count, Byte Stuffing (Flag/ESC), and Bit Stuffing (01111110) framing simulations with bit-level encoding inspection.</p>
+              <a href="modules/framing/index.html" class="small text-decoration-none">Open Module →</a>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6">
+            <div class="module-item">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong style="color:var(--color-accent)">CRC Simulation</strong>
+                <span class="badge bg-secondary small">Layer 2</span>
+              </div>
+              <p class="small text-muted mb-2">Standard Cyclic Redundancy Check binary modulo-2 division, remainder computation, codeword generation, and error detection.</p>
+              <a href="modules/crc/index.html" class="small text-decoration-none">Open Module →</a>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6">
+            <div class="module-item">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong style="color:var(--color-primary)">Sliding Window</strong>
+                <span class="badge bg-secondary small">Layer 4</span>
+              </div>
+              <p class="small text-muted mb-2">Interactive pipelined window sliding transmission with sender/receiver window boundaries, frame acknowledgment, and step control.</p>
+              <a href="modules/sliding-window/index.html" class="small text-decoration-none">Open Module →</a>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6">
+            <div class="module-item">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong style="color:var(--color-warning)">Go-Back-N ARQ</strong>
+                <span class="badge bg-secondary small">Layer 4</span>
+              </div>
+              <p class="small text-muted mb-2">Cumulative ACK handling, deterministic frame loss simulation, out-of-order frame discard, and timeout window retransmissions.</p>
+              <a href="modules/go-back-n/index.html" class="small text-decoration-none">Open Module →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category 2: Routing and Network Algorithms -->
+      <div class="mb-4">
+        <div class="category-header">
+          <span>🗺️</span>
+          <h3>Routing &amp; Network Algorithms</h3>
+        </div>
+        <div class="row g-3">
+          <div class="col-lg-4 col-md-6">
+            <div class="module-item">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong style="color:var(--color-primary)">Dijkstra Shortest Path</strong>
+                <span class="badge bg-secondary small">Routing</span>
+              </div>
+              <p class="small text-muted mb-2">Calculates least-cost shortest paths across the active organizational topology, displaying unvisited queues, edge relaxation, and predecessor trees.</p>
+              <a href="modules/dijkstra/index.html" class="small text-decoration-none">Open Module →</a>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6">
+            <div class="module-item">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong style="color:var(--color-accent)">Distance Vector Routing</strong>
+                <span class="badge bg-secondary small">Routing</span>
+              </div>
+              <p class="small text-muted mb-2">Simulates distributed Bellman-Ford distance-vector exchanges between neighbors until full network convergence is reached.</p>
+              <a href="modules/distance-vector/index.html" class="small text-decoration-none">Open Module →</a>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6">
+            <div class="module-item">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong style="color:var(--color-info)">Broadcast Tree</strong>
+                <span class="badge bg-secondary small">Topology</span>
+              </div>
+              <p class="small text-muted mb-2">Constructs minimum-spanning delivery trees across organizational routers and client subnets, ensuring loop-free multi-point forwarding.</p>
+              <a href="modules/broadcast-tree/index.html" class="small text-decoration-none">Open Module →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category 3: Congestion & Security -->
+      <div class="mb-4">
+        <div class="category-header">
+          <span>🛡️</span>
+          <h3>Congestion Control &amp; Security</h3>
+        </div>
+        <div class="row g-3">
+          <div class="col-lg-4 col-md-6">
+            <div class="module-item">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong style="color:var(--color-primary)">Leaky Bucket Algorithm</strong>
+                <span class="badge bg-secondary small">Traffic</span>
+              </div>
+              <p class="small text-muted mb-2">Real-time simulation of bursty packet inflows, constant rate outflows, buffer queue limits, and packet drop event charts.</p>
+              <a href="modules/leaky-bucket/index.html" class="small text-decoration-none">Open Module →</a>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6">
+            <div class="module-item">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong style="color:var(--color-warning)">Encryption &amp; Ciphers</strong>
+                <span class="badge bg-secondary small">Security</span>
+              </div>
+              <p class="small text-muted mb-2">Interactive cryptographic ciphers (Substitution, Caesar, DES, and RSA concepts) demonstrating data confidentiality.</p>
+              <a href="modules/encryption/index.html" class="small text-decoration-none">Open Module →</a>
+            </div>
+          </div>
+
+          <div class="col-lg-4 col-md-6">
+            <div class="module-item">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong style="color:var(--color-danger)">Nmap Scanner</strong>
+                <span class="badge bg-secondary small">Audit</span>
+              </div>
+              <p class="small text-muted mb-2">Educational authorized host auditing, port scanning, OS fingerprinting, and service version detection interface.</p>
+              <a href="tools/nmap/index.html" class="small text-decoration-none">Open Module →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category 4: Network Analysis Tools -->
+      <div class="mb-4">
+        <div class="category-header">
+          <span>🔬</span>
+          <h3>Network Analysis Tools</h3>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="module-item">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong style="color:var(--color-primary)">Wireshark Packet Analyzer</strong>
+                <span class="badge bg-secondary small">Analysis</span>
+              </div>
+              <p class="small text-muted mb-2">Client-side binary Libpcap parser, TShark text importer, packet dissection tree (Ethernet/IP/TCP/UDP), hex dump view, and protocol breakdown charts.</p>
+              <a href="tools/wireshark/index.html" class="small text-decoration-none">Open Module →</a>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <div class="module-item">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <strong style="color:var(--color-accent)">NS2 Simulation Analyzer</strong>
+                <span class="badge bg-secondary small">Simulation</span>
+              </div>
+              <p class="small text-muted mb-2">Parses 12-column NS2 trace records (.tr) to compute Packet Delivery Ratio (PDR), Packet Loss Ratio (PLR), throughput, and average end-to-end delay.</p>
+              <a href="tools/ns2/index.html" class="small text-decoration-none">Open Module →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category 5: Shared Application Infrastructure -->
+      <div>
+        <div class="category-header">
+          <span>🌐</span>
+          <h3>Shared Application Infrastructure</h3>
+        </div>
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="module-item">
+              <strong style="color:var(--text-primary)">Central Dashboard</strong>
+              <p class="small text-muted mb-2 mt-1">High-level operational overview, dynamic topology widget, recent experiment telemetry, and quick launch triggers.</p>
+              <a href="dashboard.html" class="small text-decoration-none">Open Dashboard →</a>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="module-item">
+              <strong style="color:var(--text-primary)">Interactive Topology</strong>
+              <p class="small text-muted mb-2 mt-1">Interactive SVG map of the organization's Server, Routers (R1–R3), and PC hosts with live route highlighting.</p>
+              <a href="topology.html" class="small text-decoration-none">Open Topology →</a>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="module-item">
+              <strong style="color:var(--text-primary)">Results Center</strong>
+              <p class="small text-muted mb-2 mt-1">Centralized execution history, performance metric cards, filtering, details inspection modal, and JSON/CSV export.</p>
+              <a href="results.html" class="small text-decoration-none">Open Results →</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Technology Stack Section -->
+    <section class="about-section-card" aria-labelledby="tech-heading">
+      <h2 id="tech-heading" style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 16px;">
+        🛠️ Technology Stack
+      </h2>
+      <p class="small text-secondary mb-3">
+        Built strictly with verified, standards-compliant web technologies ensuring universal client-side execution with zero external heavy framework overhead:
+      </p>
+      <div class="d-flex flex-wrap gap-2">
+        <div class="tech-badge"><span class="tech-icon">🌐</span> HTML5 (Semantic Structure)</div>
+        <div class="tech-badge"><span class="tech-icon">🎨</span> CSS3 &amp; Modern Design Tokens</div>
+        <div class="tech-badge"><span class="tech-icon">📐</span> Bootstrap 5 (Responsive Layout)</div>
+        <div class="tech-badge"><span class="tech-icon">⚡</span> JavaScript (ES6+ Modular Architecture)</div>
+        <div class="tech-badge"><span class="tech-icon">📈</span> HTML5 Canvas API (Data Waveforms &amp; Charts)</div>
+        <div class="tech-badge"><span class="tech-icon">🗺️</span> Scalable Vector Graphics (SVG) (Network Topology)</div>
+        <div class="tech-badge"><span class="tech-icon">💾</span> Browser LocalStorage (Telemetry Persistence)</div>
+        <div class="tech-badge"><span class="tech-icon">🦈</span> Libpcap Binary Parser &amp; TShark Formatter</div>
+        <div class="tech-badge"><span class="tech-icon">⚙️</span> NS-2 OTcl Script Generator &amp; Trace Engine</div>
+      </div>
+    </section>
+
+    <!-- 5. Academic Team Contributions & Roles -->
+    <section class="about-section-card" aria-labelledby="team-heading">
+      <h2 id="team-heading" style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">
+        👥 Team Contributions &amp; Module Distribution
+      </h2>
+      <p class="small text-secondary mb-3">
+        SMARTNET was structured and implemented across specialized networking domains. The table below outlines the functional division of responsibilities:
+      </p>
+
+      <div class="table-responsive mb-3">
+        <table class="table team-table">
+          <thead>
+            <tr>
+              <th style="width: 110px;">Role / Member</th>
+              <th style="width: 220px;">Domain Responsibility</th>
+              <th>Assigned Modules &amp; Deliverables</th>
+              <th style="width: 140px;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="fw-bold text-primary">Member 1</td>
+              <td>Integration Lead &amp; Architecture</td>
+              <td>Central Dashboard, Shared Navigation, Integration Layer, Topology &amp; Results Center</td>
+              <td><span class="sn-badge success">Completed</span></td>
+            </tr>
+            <tr>
+              <td class="fw-bold text-primary">Member 2</td>
+              <td>Data Link Layer Protocols</td>
+              <td>Framing Simulation (Character Count, Byte &amp; Bit Stuffing), CRC Error Detection</td>
+              <td><span class="sn-badge success">Completed</span></td>
+            </tr>
+            <tr>
+              <td class="fw-bold text-primary">Member 3</td>
+              <td>Flow Control &amp; Error Recovery</td>
+              <td>Sliding Window Protocol Simulation, Go-Back-N (GBN) ARQ Protocol</td>
+              <td><span class="sn-badge success">Completed</span></td>
+            </tr>
+            <tr>
+              <td class="fw-bold text-primary">Member 4</td>
+              <td>Network Routing Algorithms</td>
+              <td>Dijkstra Shortest Path Algorithm, Distance Vector (Bellman-Ford) Routing</td>
+              <td><span class="sn-badge success">Completed</span></td>
+            </tr>
+            <tr>
+              <td class="fw-bold text-primary">Member 5</td>
+              <td>Traffic Control &amp; Spanning Tree</td>
+              <td>Broadcast Tree Construction, Leaky Bucket Congestion &amp; Traffic Shaping</td>
+              <td><span class="sn-badge success">Completed</span></td>
+            </tr>
+            <tr>
+              <td class="fw-bold text-primary">Member 6</td>
+              <td>Network Security &amp; Auditing</td>
+              <td>Cryptographic Ciphers &amp; Encryption, Authorized Nmap Network Auditing</td>
+              <td><span class="sn-badge success">Completed</span></td>
+            </tr>
+            <tr>
+              <td class="fw-bold text-primary">Member 7</td>
+              <td>Network Analysis Tools</td>
+              <td>Wireshark Packet Capture &amp; Dissection, NS2 Simulation &amp; Trace Performance Metrics</td>
+              <td><span class="sn-badge success">Completed</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Academic Metadata Placeholders -->
+      <div class="academic-meta-box">
+        <div class="row g-2 text-muted">
+          <div class="col-md-3"><strong>Institution / Dept:</strong> [Department of Computer Science &amp; Engineering]</div>
+          <div class="col-md-3"><strong>Academic Year:</strong> [2024–2025]</div>
+          <div class="col-md-3"><strong>Faculty Mentor:</strong> [Project Advisor / Course Faculty]</div>
+          <div class="col-md-3"><strong>Course Title:</strong> [Computer Networks &amp; Network Security]</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Educational Learning Outcomes -->
+    <section class="about-section-card" aria-labelledby="outcomes-heading">
+      <h2 id="outcomes-heading" style="font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 14px;">
+        🎓 Key Learning Outcomes
+      </h2>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="p-3 rounded h-100" style="background:var(--bg-surface);border:1px solid var(--border-color);">
+            <div class="fw-bold text-primary mb-1">1. Framing &amp; Error Control</div>
+            <div class="small text-muted">Mastering bit and byte framing delimiters, boundary escape conventions, and cyclic redundancy parity calculations.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded h-100" style="background:var(--bg-surface);border:1px solid var(--border-color);">
+            <div class="fw-bold text-accent mb-1">2. Pipelined Transport Protocols</div>
+            <div class="small text-muted">Understanding window limits, cumulative versus individual ACKs, timeout retransmission costs, and bandwidth-delay product.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded h-100" style="background:var(--bg-surface);border:1px solid var(--border-color);">
+            <div class="fw-bold text-info mb-1">3. Graph Routing Dynamics</div>
+            <div class="small text-muted">Analyzing state relaxation in Dijkstra’s algorithm and distributed asynchronous distance vector table convergence.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded h-100" style="background:var(--bg-surface);border:1px solid var(--border-color);">
+            <div class="fw-bold text-warning mb-1">4. Traffic Shaping &amp; Buffer Limits</div>
+            <div class="small text-muted">Observing how token and leaky bucket queues regulate bursty inflows into smooth, deterministic outflows to prevent congestion.</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded h-100" style="background:var(--bg-surface);border:1px solid var(--border-color);">
+            <div class="fw-bold text-danger mb-1">5. Security &amp; Protocol Dissection</div>
+            <div class="small text-muted">Inspecting real binary packet payloads, dissecting L2–L7 headers, and evaluating trace delivery ratios (PDR/PLR).</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded h-100" style="background:var(--bg-surface);border:1px solid var(--border-color);">
+            <div class="fw-bold text-primary-light mb-1">6. Unified Systems Integration</div>
+            <div class="small text-muted">Collaborative full-stack integration connecting distinct network protocols into a single, cohesive web application suite.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="sn-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© 2024 SMARTNET — Network Performance Analyzer &amp; Security Testing System</p>
+        <p style="color:var(--text-muted);">Academic Project Documentation</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+  <!-- SMARTNET Shared Layers -->
+  <script src="../assets/js/navigation.js"></script>
+  <script src="../assets/js/integration.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (window.SMARTNET && window.SMARTNET.Navigation && typeof window.SMARTNET.Navigation.init === 'function') {
+        window.SMARTNET.Navigation.init('sn-nav-container');
+      }
+      if (window.SMARTNET && window.SMARTNET.Integration && typeof window.SMARTNET.Integration.init === 'function') {
+        window.SMARTNET.Integration.init();
+      }
+    });
+  </script>
+
+</body>
+</html>
