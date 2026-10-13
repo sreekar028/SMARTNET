@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Centralized Results Center for all SMARTNET simulations and analysis tools." />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>Results Center — SMARTNET</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+
+  <!-- SMARTNET Global Stylesheet -->
+  <link rel="stylesheet" href="../assets/css/style.css" />
+
+  <!-- Results Center Scoped Styles -->
+  <style>
+    .results-hero {
+      background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-base) 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: var(--space-xl) 0 var(--space-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    .results-hero::before {
+      content: '';
+      position: absolute;
+      top: -40%; right: -15%;
+      width: 50%; height: 180%;
+      background: radial-gradient(ellipse, rgba(79, 142, 247, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .summary-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+      padding: var(--space-md) var(--space-lg);
+      transition: var(--transition-normal);
+      height: 100%;
+    }
+    .summary-card:hover {
+      border-color: var(--border-color-light);
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+    }
+    .results-table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+      overflow: hidden;
+    }
+    .results-table {
+      margin-bottom: 0;
+      font-size: 0.86rem;
+    }
+    .results-table th {
+      background: var(--bg-surface);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.74rem;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid var(--border-color);
+      padding: 12px 16px;
+    }
+    .results-table td {
+      padding: 12px 16px;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+    .results-table tbody tr {
+      transition: background 0.15s ease;
+    }
+    .results-table tbody tr:hover {
+      background: var(--bg-card-hover);
+    }
+    .filter-bar {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+      padding: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+    .empty-state {
+      padding: var(--space-xxl) var(--space-lg);
+      text-align: center;
+      background: var(--bg-card);
+      border: 1px dashed var(--border-color-light);
+      border-radius: var(--border-radius-lg);
+    }
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: var(--space-md);
+      opacity: 0.8;
+    }
+    .modal-content {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color-light);
+      border-radius: var(--border-radius-lg);
+      color: var(--text-primary);
+    }
+    .modal-header {
+      border-bottom: 1px solid var(--border-color);
+      background: var(--bg-surface);
+    }
+    .modal-footer {
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-surface);
+    }
+    .detail-table th {
+      width: 35%;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.82rem;
+    }
+    .detail-table td {
+      font-family: var(--font-mono);
+      font-size: 0.82rem;
+      color: var(--text-primary);
+    }
+    .json-code-box {
+      background: #060910;
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-sm);
+      padding: var(--space-md);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      max-height: 240px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      color: #94a3b8;
+    }
+  </style>
+</head>
+<body data-page="results">
+
+  <!-- Shared Navigation Injection Container -->
+  <div id="sn-nav-container"></div>
+
+  <!-- Hero Header -->
+  <header class="results-hero">
+    <div class="container">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+          <a href="dashboard.html" class="btn-secondary-sn mb-3 d-inline-flex align-items-center gap-1" style="font-size:0.8rem;padding:4px 12px;">
+            ← Dashboard
+          </a>
+          <div class="d-flex align-items-center gap-3">
+            <div class="sn-card-icon blue" style="width:52px;height:52px;font-size:1.5rem;">📋</div>
+            <div>
+              <h1 style="font-size:clamp(1.6rem, 3.5vw, 2.2rem);margin:0;">Results Center</h1>
+              <p style="margin:4px 0 0;font-size:0.9rem;color:var(--text-secondary);">
+                Centralized telemetry, execution history, and analytical metrics across all simulation and analysis modules.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1" id="btn-refresh-results">
+            <span>🔄</span> Refresh
+          </button>
+          <div class="dropdown">
+            <button class="btn btn-outline-primary btn-sm dropdown-toggle d-flex align-items-center gap-1" type="button" id="exportDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <span>📥</span> Export
+            </button>
+            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="exportDropdown">
+              <li><a class="dropdown-item" href="#" id="btn-export-json">Export as JSON</a></li>
+              <li><a class="dropdown-item" href="#" id="btn-export-csv">Export as CSV</a></li>
+            </ul>
+          </div>
+          <button class="btn btn-outline-danger btn-sm d-flex align-items-center gap-1" id="btn-confirm-clear">
+            <span>🗑️</span> Clear History
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container my-4">
+
+    <!-- Summary KPI Cards -->
+    <section class="row g-3 mb-4" aria-label="Results Summary Metrics">
+      <div class="col-xl-3 col-sm-6">
+        <div class="summary-card">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="text-muted small fw-bold">TOTAL RECORDED RUNS</span>
+            <span class="badge bg-primary-subtle text-primary border border-primary">Runs</span>
+          </div>
+          <div class="fs-2 fw-bold text-primary" id="kpi-total-runs">0</div>
+          <div class="text-muted small mt-1" id="kpi-unique-modules">Across 0 distinct modules</div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-sm-6">
+        <div class="summary-card">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="text-muted small fw-bold">SUCCESSFUL RUNS</span>
+            <span class="badge bg-success-subtle text-success border border-success">Completed</span>
+          </div>
+          <div class="fs-2 fw-bold text-success" id="kpi-successful-runs">0</div>
+          <div class="text-muted small mt-1" id="kpi-success-rate">0% success rate</div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-sm-6">
+        <div class="summary-card">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="text-muted small fw-bold">FAILED / INCOMPLETE</span>
+            <span class="badge bg-danger-subtle text-danger border border-danger">Failed</span>
+          </div>
+          <div class="fs-2 fw-bold text-danger" id="kpi-failed-runs">0</div>
+          <div class="text-muted small mt-1" id="kpi-fail-rate">0% failure rate</div>
+        </div>
+      </div>
+
+      <div class="col-xl-3 col-sm-6">
+        <div class="summary-card">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="text-muted small fw-bold">RECENT EXECUTION</span>
+            <span class="badge bg-info-subtle text-info border border-info">Latest</span>
+          </div>
+          <div class="fs-5 fw-bold text-info text-truncate" id="kpi-recent-module">None</div>
+          <div class="text-muted small mt-1 text-truncate" id="kpi-recent-time">No simulation records</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter and Search Toolbar -->
+    <section class="filter-bar" aria-labelledby="filter-heading">
+      <div class="row g-2 align-items-center">
+        <div class="col-lg-4 col-md-6">
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-dark border-secondary text-muted">🔍</span>
+            <input type="text" class="form-control form-control-sm" id="filter-search"
+                   placeholder="Search by experiment, run ID, or metrics..." />
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-3 col-sm-6">
+          <select class="form-select form-select-sm" id="filter-module">
+            <option value="">All Modules</option>
+            <option value="crc">CRC Simulation</option>
+            <option value="framing">Framing</option>
+            <option value="slidingWindow">Sliding Window</option>
+            <option value="goBackN">Go-Back-N</option>
+            <option value="dijkstra">Dijkstra Routing</option>
+            <option value="distanceVector">Distance Vector</option>
+            <option value="broadcastTree">Broadcast Tree</option>
+            <option value="leakyBucket">Leaky Bucket</option>
+            <option value="encryption">Encryption</option>
+            <option value="wireshark">Wireshark</option>
+            <option value="ns2">NS2 Simulation</option>
+            <option value="nmap">Nmap</option>
+          </select>
+        </div>
+
+        <div class="col-lg-2 col-md-3 col-sm-6">
+          <select class="form-select form-select-sm" id="filter-status">
+            <option value="">All Statuses</option>
+            <option value="Completed">Completed</option>
+            <option value="Failed">Failed</option>
+            <option value="Running">Running</option>
+            <option value="Pending">Pending</option>
+          </select>
+        </div>
+
+        <div class="col-lg-3 col-md-12 d-flex justify-content-lg-end gap-2">
+          <button class="btn btn-outline-secondary btn-sm text-nowrap" id="btn-clear-filters">
+            Clear Filters
+          </button>
+          <button class="btn btn-outline-info btn-sm text-nowrap" id="btn-load-sample-data" title="Load verified demonstration records into Results Center">
+            Load Sample Data
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Table View -->
+    <section class="results-table-container mb-4" id="results-table-section">
+      <div class="table-responsive">
+        <table class="table results-table" id="results-history-table">
+          <thead>
+            <tr>
+              <th style="width: 100px;">Run ID</th>
+              <th style="width: 200px;">Module / Experiment</th>
+              <th style="width: 180px;">Executed At</th>
+              <th style="width: 120px;">Status</th>
+              <th>Key Metrics Summary</th>
+              <th style="width: 110px;" class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="results-table-body">
+            <!-- Dynamically injected rows -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Empty State -->
+    <section class="empty-state d-none" id="results-empty-state">
+      <div class="empty-state-icon">📋</div>
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px;">No Recorded Results Yet</h3>
+      <p class="text-muted" style="max-width: 500px; margin: 0 auto 20px; font-size: 0.88rem;">
+        No simulation runs or analytical reports have been published in this session. Run experiments in any of the modules or click below to populate verified sample records.
+      </p>
+      <div class="d-flex justify-content-center flex-wrap gap-2">
+        <button class="btn btn-primary btn-sm" id="btn-empty-load-sample">
+          ⚡ Load Sample Results
+        </button>
+        <a href="simulations.html" class="btn btn-outline-secondary btn-sm">
+          Explore Simulation Lab
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Result Details Modal -->
+  <div class="modal fade" id="modalResultDetails" tabindex="-1" aria-labelledby="modalResultDetailsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <div class="d-flex align-items-center gap-2">
+            <span class="fs-5" id="modal-icon">📊</span>
+            <div>
+              <h5 class="modal-title h6 fw-bold mb-0" id="modalResultDetailsLabel">Result Details</h5>
+              <div class="text-muted" style="font-size:0.75rem;" id="modal-subtitle">Run Details</div>
+            </div>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+
+          <!-- Meta badges -->
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3 pb-3 border-bottom border-secondary">
+            <div>
+              <span class="text-muted small">Status: </span>
+              <span id="modal-status-badge" class="sn-badge success">Completed</span>
+            </div>
+            <div>
+              <span class="text-muted small">Run ID: </span>
+              <span id="modal-run-id" class="font-monospace small fw-bold">#RUN-01</span>
+            </div>
+            <div>
+              <span class="text-muted small">Timestamp: </span>
+              <span id="modal-timestamp" class="font-monospace small text-muted">2026-10-13 12:00:00</span>
+            </div>
+          </div>
+
+          <!-- Parameters & Inputs -->
+          <div class="mb-3">
+            <h6 class="fw-bold small text-primary mb-2">⚙️ Input Parameters &amp; Configuration</h6>
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered detail-table mb-0">
+                <tbody id="modal-params-body">
+                  <tr><td colspan="2" class="text-muted text-center py-2">No input parameters logged.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Computed Metrics & Outputs -->
+          <div class="mb-3">
+            <h6 class="fw-bold small text-accent mb-2">📈 Calculated Performance Metrics &amp; Output</h6>
+            <div class="table-responsive">
+              <table class="table table-sm table-bordered detail-table mb-0">
+                <tbody id="modal-metrics-body">
+                  <tr><td colspan="2" class="text-muted text-center py-2">No metrics recorded.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Notes / Warnings -->
+          <div class="mb-3 d-none" id="modal-notes-container">
+            <h6 class="fw-bold small text-warning mb-1">⚠️ Notes &amp; Observations</h6>
+            <p class="small text-secondary mb-0 p-2 bg-dark rounded border border-secondary" id="modal-notes-text"></p>
+          </div>
+
+          <!-- Raw JSON Accordion -->
+          <div class="mt-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="text-muted small">Raw Result Payload (JSON)</span>
+              <button class="btn btn-link btn-sm text-decoration-none p-0 text-primary" id="btn-copy-json">
+                📋 Copy JSON
+              </button>
+            </div>
+            <div class="json-code-box" id="modal-raw-json">{}</div>
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clear Confirmation Modal -->
+  <div class="modal fade" id="modalConfirmClear" tabindex="-1" aria-labelledby="modalConfirmClearLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title h6 fw-bold text-danger mb-0" id="modalConfirmClearLabel">Clear All Results?</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body small text-secondary">
+          Are you sure you want to clear all stored simulation and analysis results? This action will reset the history in your local session.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger btn-sm" id="btn-execute-clear">Yes, Clear All</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="sn-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© 2024 SMARTNET — Network Performance Analyzer &amp; Security Testing System</p>
+        <p style="color:var(--text-muted);">Centralized Results Center</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+  <!-- SMARTNET Shared Layers -->
+  <script src="../assets/js/navigation.js"></script>
+  <script src="../assets/js/integration.js"></script>
+
+  <!-- Results Center Logic -->
+  <script src="../assets/js/results.js"></script>
+
+</body>
+</html>
