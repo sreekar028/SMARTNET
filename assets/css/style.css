@@ -522,61 +522,177 @@ code, pre { font-family: var(--font-mono); }
 .sn-table tr:hover td { background: #f9fdf9; }
 .sn-table tr:last-child td { border-bottom: none; }
 
-/* ── TOPOLOGY SVG ────────────────────────────────────────── */
-.topology-container {
-  background: #ffffff;
+/* ── STANDARDIZED TOPOLOGY VISUAL SYSTEM (Broadcast Tree Standard) ── */
+.topology-container,
+.tree-viz-container,
+.topo-canvas-box,
+.dijkstra-graph-container,
+.dv-graph-container {
+  background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-lg);
   padding: var(--space-lg);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 340px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
   box-shadow: var(--shadow-sm);
 }
 
-#topology-svg {
+.topology-container svg,
+#topology-svg,
+#broadcast-tree-svg,
+#dijk-svg,
+#dv-svg {
   width: 100%;
-  max-width: 600px;
   height: auto;
   overflow: visible;
+  display: block;
 }
 
-.topo-link {
+/* Links & Connections */
+.link-base,
+.topo-link,
+.svg-topo-link,
+.link-line {
+  stroke: #94a3b8;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+.topo-link:hover,
+.svg-topo-link:hover,
+.link-line:hover {
+  stroke: var(--color-primary);
+  stroke-width: 3.5;
+}
+
+.link-tree,
+.svg-topo-link.highlighted-path,
+.link-line.path,
+.link-line.highlighted-path {
+  stroke: var(--color-primary) !important;
+  stroke-width: 4 !important;
+  stroke-linecap: round;
+  transition: all 0.25s ease;
+}
+
+.link-non-tree,
+.link-line.link-failed {
   stroke: #cbd5e1;
   stroke-width: 2;
-  transition: stroke 0.25s;
+  stroke-dasharray: 4, 4;
+  opacity: 0.65;
 }
-.topo-link:hover { stroke: var(--color-primary); }
 
-.topo-node-group { cursor: default; }
-
-.topo-node-server { fill: #dcfce7; stroke: var(--color-primary); stroke-width: 2; }
-.topo-node-router { fill: #f0fdf4; stroke: var(--color-accent);  stroke-width: 2; }
-.topo-node-host   { fill: #ffffff;  stroke: #64748b;             stroke-width: 2; }
-
-.topo-label {
-  fill: var(--text-primary);
+/* Link Cost & Bandwidth Badges */
+.link-badge-bg,
+.link-cost-bg {
+  fill: var(--bg-surface);
+  stroke: var(--border-color);
+  stroke-width: 1.5;
+  rx: 4;
+  ry: 4;
+  transition: all 0.25s ease;
+}
+.link-badge-text {
+  font-size: 10px;
   font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
+  fill: var(--text-secondary);
   text-anchor: middle;
   dominant-baseline: central;
   pointer-events: none;
 }
+
+/* Nodes Base & Groups */
+.topo-node-group,
+.bt-node-group,
+.svg-topo-node {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.node-circle {
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+/* Node Types (Server, Router, Host) */
+.node-server,
+.topo-node-server {
+  fill: #dcfce7;
+  stroke: #15803d;
+  stroke-width: 3;
+}
+.node-router,
+.topo-node-router {
+  fill: #f0fdf4;
+  stroke: #16a34a;
+  stroke-width: 2.5;
+}
+.node-host,
+.topo-node-host {
+  fill: #ffffff;
+  stroke: #64748b;
+  stroke-width: 2.5;
+}
+
+/* Node States: Active / Selected / Visited / Path */
+.node-selected,
+.node-current,
+.node-circle.current,
+.svg-topo-node.selected circle {
+  fill: #fef3c7 !important;
+  stroke: #d97706 !important;
+  stroke-width: 3.5 !important;
+}
+.node-visited,
+.node-received,
+.node-circle.visited {
+  fill: #dcfce7 !important;
+  stroke: var(--color-primary) !important;
+  stroke-width: 3 !important;
+}
+.node-path,
+.node-circle.path,
+.svg-topo-node.path-node circle {
+  fill: #dcfce7 !important;
+  stroke: var(--color-primary) !important;
+  stroke-width: 3.5 !important;
+}
+
+/* Node Hover Outlines */
+.topo-node-group:hover circle,
+.bt-node-group:hover circle,
+.svg-topo-node:hover circle {
+  stroke-width: 3.5 !important;
+  stroke: var(--color-primary) !important;
+}
+
+/* Node Labels & Typography */
+.node-text-id,
+.topo-label {
+  fill: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+.node-text-type,
 .topo-sublabel {
   fill: var(--text-muted);
   font-family: var(--font-main);
   font-size: 10px;
+  font-weight: 600;
   text-anchor: middle;
   pointer-events: none;
 }
-
-/* Node hover subtle outline */
-.topo-node-group:hover .topo-node-server { stroke-width: 3; }
-.topo-node-group:hover .topo-node-router { stroke-width: 3; }
-.topo-node-group:hover .topo-node-host   { stroke-width: 3; }
 
 /* ── MODULE CARDS ────────────────────────────────────────── */
 .module-card {
@@ -912,30 +1028,96 @@ code, pre { font-family: var(--font-mono); }
   background: #1a2c22;
 }
 
-[data-theme="dark"] .topology-container {
+[data-theme="dark"] .topology-container,
+[data-theme="dark"] .tree-viz-container,
+[data-theme="dark"] .topo-canvas-box,
+[data-theme="dark"] .dijkstra-graph-container,
+[data-theme="dark"] .dv-graph-container {
   background: var(--bg-surface);
   border-color: var(--border-color);
 }
-[data-theme="dark"] .topo-link {
+
+[data-theme="dark"] .link-base,
+[data-theme="dark"] .topo-link,
+[data-theme="dark"] .svg-topo-link,
+[data-theme="dark"] .link-line {
+  stroke: #475569;
+  stroke-width: 2.5;
+}
+[data-theme="dark"] .svg-topo-link:hover,
+[data-theme="dark"] .topo-link:hover,
+[data-theme="dark"] .link-line:hover {
+  stroke: #4ade80;
+}
+
+[data-theme="dark"] .link-tree,
+[data-theme="dark"] .svg-topo-link.highlighted-path,
+[data-theme="dark"] .link-line.path,
+[data-theme="dark"] .link-line.highlighted-path {
+  stroke: #4ade80 !important;
+  stroke-width: 4 !important;
+}
+
+[data-theme="dark"] .link-non-tree,
+[data-theme="dark"] .link-line.link-failed {
   stroke: #334155;
+  opacity: 0.6;
 }
+
+[data-theme="dark"] .link-badge-bg,
+[data-theme="dark"] .link-cost-bg {
+  fill: #16241d !important;
+  stroke: #334155 !important;
+}
+[data-theme="dark"] .link-badge-text {
+  fill: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .node-server,
 [data-theme="dark"] .topo-node-server {
-  fill: #142e20;
-  stroke: var(--color-primary);
+  fill: #143322;
+  stroke: #4ade80;
+  stroke-width: 3;
 }
+[data-theme="dark"] .node-router,
 [data-theme="dark"] .topo-node-router {
-  fill: #11241a;
-  stroke: var(--color-accent);
+  fill: #11281c;
+  stroke: #22c55e;
+  stroke-width: 2.5;
 }
+[data-theme="dark"] .node-host,
 [data-theme="dark"] .topo-node-host {
-  fill: #1a2634;
-  stroke: #64748b;
+  fill: #1e293b;
+  stroke: #94a3b8;
+  stroke-width: 2.5;
 }
+
+[data-theme="dark"] .node-selected,
+[data-theme="dark"] .node-current,
+[data-theme="dark"] .node-circle.current,
+[data-theme="dark"] .svg-topo-node.selected circle {
+  fill: #3b280c !important;
+  stroke: #fbbf24 !important;
+  stroke-width: 3.5 !important;
+}
+[data-theme="dark"] .node-visited,
+[data-theme="dark"] .node-received,
+[data-theme="dark"] .node-path,
+[data-theme="dark"] .node-circle.visited,
+[data-theme="dark"] .node-circle.path,
+[data-theme="dark"] .svg-topo-node.path-node circle {
+  fill: #143322 !important;
+  stroke: #4ade80 !important;
+  stroke-width: 3.5 !important;
+}
+
+[data-theme="dark"] .node-text-id,
 [data-theme="dark"] .topo-label {
-  fill: var(--text-primary);
+  fill: #f8fafc !important;
 }
+[data-theme="dark"] .node-text-type,
 [data-theme="dark"] .topo-sublabel {
-  fill: var(--text-muted);
+  fill: #cbd5e1 !important;
 }
 
 [data-theme="dark"] .sn-badge.success {

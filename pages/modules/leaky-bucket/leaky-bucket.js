@@ -622,6 +622,9 @@
       el.overflowChute.classList.remove('active');
       el.overflowChute.classList.remove('overflowing');
     }
+    if (el.overflowCount) {
+      el.overflowCount.textContent = 'Dropped: 0';
+    }
     const streamEl = document.getElementById('lb-leak-stream');
     if (streamEl) {
       streamEl.classList.remove('active');
@@ -730,7 +733,7 @@
     if (droppedCount > 0) {
       el.overflowChute.classList.add('active');
       el.overflowChute.classList.add('overflowing');
-      if (el.overflowCount) el.overflowCount.textContent = `-${droppedCount} Drop`;
+      if (el.overflowCount) el.overflowCount.textContent = `Dropped: -${state.totalDropped}`;
       setTimeout(() => {
         if (el.overflowChute) {
           el.overflowChute.classList.remove('active');
@@ -751,7 +754,7 @@
     if (el.metricFill)       el.metricFill.textContent       = `${state.currentLevel} pkts`;
     if (el.metricInflow)     el.metricInflow.textContent     = state.totalInflow;
     if (el.metricSent)       el.metricSent.textContent       = state.totalConforming;
-    if (el.metricDropped)    el.metricDropped.textContent    = state.totalDropped;
+    if (el.metricDropped)    el.metricDropped.textContent    = state.totalDropped > 0 ? `-${state.totalDropped}` : '0';
     if (el.metricDropRate)   el.metricDropRate.textContent   = `${dropRate}%`;
     if (el.metricThroughput) el.metricThroughput.textContent = `${throughput} Mbps`;
   }
@@ -771,7 +774,7 @@
     if (el.resRate)      el.resRate.textContent      = `${state.leakRate} pkts/tick`;
     if (el.resIncoming)  el.resIncoming.textContent  = state.totalInflow;
     if (el.resSent)      el.resSent.textContent      = state.totalConforming;
-    if (el.resDropped)   el.resDropped.textContent   = state.totalDropped;
+    if (el.resDropped)   el.resDropped.textContent   = state.totalDropped > 0 ? `-${state.totalDropped}` : '0';
     if (el.resOccupancy) el.resOccupancy.textContent = `${state.currentLevel} pkts`;
     if (el.resDropRate)  el.resDropRate.textContent  = `${dropRate}%`;
     if (el.resStatus)    el.resStatus.textContent    = statusText;
@@ -800,7 +803,7 @@
       <td class="text-mono">${step.incoming}</td>
       <td class="text-mono">${step.bucket}</td>
       <td class="text-mono" style="color:var(--color-accent);">${step.sent}</td>
-      <td class="text-mono" style="${step.dropped > 0 ? 'color:var(--color-danger);font-weight:700;' : ''}">${step.dropped}</td>
+      <td class="text-mono" style="${step.dropped > 0 ? 'color:var(--color-danger);font-weight:700;' : ''}">${step.dropped > 0 ? `-${step.dropped}` : '0'}</td>
     `;
 
     // Prepend newest row

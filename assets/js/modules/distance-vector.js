@@ -249,10 +249,20 @@ document.addEventListener('DOMContentLoaded', async function () {
   function renderSVG() {
     svg.innerHTML = '';
 
+    const linksGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    linksGroup.setAttribute('class', 'links-layer');
+    svg.appendChild(linksGroup);
+
+    const nodesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    nodesGroup.setAttribute('class', 'nodes-layer');
+    svg.appendChild(nodesGroup);
+
     // Links
     BASE_LINKS.forEach(l => {
       const p1 = COORDS[l.u];
       const p2 = COORDS[l.v];
+      if (!p1 || !p2) return;
+
       const isUp = activeLinks.some(al =>
         (al.u === l.u && al.v === l.v) || (al.u === l.v && al.v === l.u)
       );
@@ -262,40 +272,72 @@ document.addEventListener('DOMContentLoaded', async function () {
       line.setAttribute('y1', p1.y);
       line.setAttribute('x2', p2.x);
       line.setAttribute('y2', p2.y);
-      line.setAttribute('stroke', isUp ? 'rgba(6, 214, 160, 0.4)' : '#ef476f');
-      line.setAttribute('stroke-width', isUp ? '2' : '3');
-      if (!isUp) line.setAttribute('stroke-dasharray', '4,4');
-      svg.appendChild(line);
+      line.setAttribute('class', `link-line topo-link ${isUp ? '' : 'link-failed'}`);
+      if (!isUp) {
+        line.setAttribute('stroke', '#ef4444');
+        line.setAttribute('stroke-dasharray', '4,4');
+        line.setAttribute('stroke-width', '2.5');
+      }
+      linksGroup.appendChild(line);
+
+      // Link Cost Badge
+      const mx = (p1.x + p2.x) / 2;
+      const my = (p1.y + p2.y) / 2;
+
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', mx - 10);
+      rect.setAttribute('y', my - 8);
+      rect.setAttribute('width', 20);
+      rect.setAttribute('height', 16);
+      rect.setAttribute('rx', 3);
+      rect.setAttribute('ry', 3);
+      rect.setAttribute('class', 'link-badge-bg');
+      linksGroup.appendChild(rect);
+
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', mx);
+      text.setAttribute('y', my);
+      text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('dominant-baseline', 'central');
+      text.setAttribute('class', 'link-badge-text');
+      text.setAttribute('style', 'font-size:9px;');
+      text.textContent = l.cost;
+      linksGroup.appendChild(text);
     });
 
     // Nodes
     NODES.forEach(id => {
       const p = COORDS[id];
       const isCur = (id === inspectSelect.value);
+      const type = id === 'SERVER' ? 'server' : id.startsWith('R') ? 'router' : 'host';
+      const r = type === 'server' ? 18 : type === 'router' ? 15 : 12;
+
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('class', 'topo-node-group bt-node-group');
+      g.style.cursor = 'pointer';
+      g.addEventListener('click', () => {
+        inspectSelect.value = id;
+        renderUI();
+      });
 
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       circle.setAttribute('cx', p.x);
       circle.setAttribute('cy', p.y);
-      circle.setAttribute('r', isCur ? '16' : '12');
-      circle.setAttribute('fill', isCur ? '#dcfce7' : '#ffffff');
-      circle.setAttribute('stroke', isCur ? 'var(--color-primary)' : 'var(--border-color)');
-      circle.setAttribute('stroke-width', isCur ? '3' : '2');
-      circle.style.cursor = 'pointer';
-      circle.addEventListener('click', () => {
-        inspectSelect.value = id;
-        renderUI();
-      });
-      svg.appendChild(circle);
+      circle.setAttribute('r', isCur ? r + 3 : r);
+      circle.setAttribute('class', `node-circle node-${type} topo-node-${type} ${isCur ? 'node-selected' : ''}`);
+      g.appendChild(circle);
 
       const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       txt.setAttribute('x', p.x);
-      txt.setAttribute('y', p.y + 4);
+      txt.setAttribute('y', p.y);
       txt.setAttribute('text-anchor', 'middle');
-      txt.setAttribute('fill', '#111827');
-      txt.setAttribute('font-size', '9');
-      txt.setAttribute('font-weight', '700');
+      txt.setAttribute('dominant-baseline', 'central');
+      txt.setAttribute('class', 'node-text-id topo-label');
+      txt.setAttribute('style', 'font-size:9px;');
       txt.textContent = id;
-      svg.appendChild(txt);
+      g.appendChild(txt);
+
+      nodesGroup.appendChild(g);
     });
   }
 

@@ -195,7 +195,7 @@ SMARTNET.Topology = (function () {
       if (!s || !t) return;
 
       const isPathLink = isLinkInPath(link.source, link.target);
-      const linkClass = isPathLink ? 'svg-topo-link highlighted-path' : 'svg-topo-link';
+      const linkClass = isPathLink ? 'svg-topo-link topo-link highlighted-path' : 'svg-topo-link topo-link';
       const linkId = `link-${link.source}-${link.target}`;
 
       const mx = (s.x + t.x) / 2;
@@ -208,8 +208,8 @@ SMARTNET.Topology = (function () {
             <title>${link.source} ↔ ${link.target} | Bandwidth: ${link.bandwidth} | Cost: ${link.cost}</title>
           </line>
           <!-- Bandwidth Pill -->
-          <rect class="link-badge-bg" x="${mx - 32}" y="${my - 10}" width="64" height="20" />
-          <text class="link-badge-text" x="${mx}" y="${my}">
+          <rect class="link-badge-bg" x="${mx - 36}" y="${my - 10}" width="72" height="20" rx="4" ry="4" />
+          <text class="link-badge-text" x="${mx}" y="${my}" dominant-baseline="central">
             ${link.bandwidth} (C:${link.cost})
           </text>
         </g>
@@ -218,24 +218,27 @@ SMARTNET.Topology = (function () {
 
     // --- Draw Nodes ---
     topoData.nodes.forEach(n => {
-      const r = n.type === 'server' ? 28 : n.type === 'router' ? 24 : 20;
-      const fillGrad = n.type === 'server' ? 'url(#grad-server)' : n.type === 'router' ? 'url(#grad-router)' : 'url(#grad-host)';
+      const r = n.type === 'server' ? 26 : n.type === 'router' ? 22 : 18;
       const isSelected = n.id === selectedNodeId;
       const isPathNode = activePath.includes(n.id);
-      let nodeClass = 'svg-topo-node';
+      let nodeClass = `svg-topo-node topo-node-group bt-node-group`;
       if (isSelected) nodeClass += ' selected';
       if (isPathNode) nodeClass += ' path-node';
+
+      let circleClass = `node-circle node-${n.type} topo-node-${n.type}`;
+      if (isSelected) circleClass += ' node-selected';
+      if (isPathNode) circleClass += ' node-path';
 
       const spec = NODE_SPECS[n.id] || { icon: '💻', title: n.label };
 
       content += `
         <g class="${nodeClass}" id="node-${n.id}" onclick="SMARTNET.Topology.inspectNode('${n.id}')"
            role="button" aria-label="${n.label}">
-          <circle cx="${n.x}" cy="${n.y}" r="${r}" fill="${fillGrad}" stroke="#1e3a5f" stroke-width="2.5">
+          <circle cx="${n.x}" cy="${n.y}" r="${r}" class="${circleClass}">
             <title>${n.label} — ${spec.title} (${spec.ip})</title>
           </circle>
-          <text class="topo-label" x="${n.x}" y="${n.y}" style="fill:#ffffff;font-size:${n.type === 'server' ? 12 : 11}px;font-weight:700;font-family:var(--font-mono);">${n.label}</text>
-          <text class="topo-sublabel" x="${n.x}" y="${n.y + r + 14}" style="font-size:12px;">${spec.icon}</text>
+          <text class="node-text-id topo-label" x="${n.x}" y="${n.y}" dominant-baseline="central">${n.label}</text>
+          <text class="node-text-type topo-sublabel" x="${n.x}" y="${n.y + r + 13}">${spec.icon} ${n.label}</text>
         </g>
       `;
     });

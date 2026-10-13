@@ -89,6 +89,14 @@ document.addEventListener('DOMContentLoaded', async function () {
   function renderGraph(highlightNode = null, visitedSet = new Set(), pathEdges = []) {
     svg.innerHTML = '';
 
+    const linksGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    linksGroup.setAttribute('class', 'links-layer');
+    svg.appendChild(linksGroup);
+
+    const nodesGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    nodesGroup.setAttribute('class', 'nodes-layer');
+    svg.appendChild(nodesGroup);
+
     // Draw Links
     links.forEach(l => {
       const p1 = NODE_COORDS[l.u];
@@ -105,98 +113,80 @@ document.addEventListener('DOMContentLoaded', async function () {
       line.setAttribute('y1', p1.y);
       line.setAttribute('x2', p2.x);
       line.setAttribute('y2', p2.y);
-      line.setAttribute('class', `link-line ${isPathEdge ? 'path' : ''}`);
-      svg.appendChild(line);
+      line.setAttribute('class', `link-line topo-link ${isPathEdge ? 'path highlighted-path' : ''}`);
+      linksGroup.appendChild(line);
 
       // Cost badge
       const midX = (p1.x + p2.x) / 2;
       const midY = (p1.y + p2.y) / 2;
 
       const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      rect.setAttribute('x', midX - 12);
+      rect.setAttribute('x', midX - 14);
       rect.setAttribute('y', midY - 10);
-      rect.setAttribute('width', 24);
+      rect.setAttribute('width', 28);
       rect.setAttribute('height', 20);
-      rect.setAttribute('class', 'link-cost-bg');
-      svg.appendChild(rect);
+      rect.setAttribute('rx', 4);
+      rect.setAttribute('ry', 4);
+      rect.setAttribute('class', 'link-badge-bg');
+      linksGroup.appendChild(rect);
 
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.setAttribute('x', midX);
-      text.setAttribute('y', midY + 4);
+      text.setAttribute('y', midY);
       text.setAttribute('text-anchor', 'middle');
-      text.setAttribute('fill', isPathEdge ? 'var(--color-accent)' : 'var(--text-muted)');
-      text.setAttribute('font-size', '11');
-      text.setAttribute('font-weight', '700');
-      text.setAttribute('font-family', 'var(--font-mono)');
+      text.setAttribute('dominant-baseline', 'central');
+      text.setAttribute('class', 'link-badge-text');
+      if (isPathEdge) text.setAttribute('style', 'fill:var(--color-primary);font-weight:800;');
       text.textContent = l.cost;
-      svg.appendChild(text);
+      linksGroup.appendChild(text);
     });
 
     // Draw Nodes
     Object.keys(NODE_COORDS).forEach(id => {
       const node = NODE_COORDS[id];
       const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('class', 'topo-node-group bt-node-group');
+      g.setAttribute('data-node-id', id);
 
       const isCur = (id === highlightNode);
       const isVisited = visitedSet.has(id);
       const inFinalPath = finalPathEdges.some(pe => pe.u === id || pe.v === id);
 
-      let circleClass = 'node-circle';
-      if (isCur) circleClass += ' current';
-      else if (inFinalPath) circleClass += ' path';
-      else if (isVisited) circleClass += ' visited';
+      let circleClass = `node-circle node-${node.type} topo-node-${node.type}`;
+      if (isCur) circleClass += ' node-current';
+      else if (inFinalPath) circleClass += ' node-path';
+      else if (isVisited) circleClass += ' node-visited';
 
-      let fillColor = '#ffffff';
-      let strokeColor = '#94a3b8';
-      let textColor = '#111827';
-      if (node.type === 'server') { strokeColor = '#15803d'; fillColor = '#dcfce7'; }
-      if (node.type === 'router') { strokeColor = '#16a34a'; fillColor = '#f0fdf4'; }
-      if (node.type === 'host')   { strokeColor = '#64748b'; fillColor = '#ffffff'; }
-
-      if (isCur) {
-        fillColor = '#fef3c7';
-        strokeColor = '#d97706';
-      } else if (inFinalPath) {
-        fillColor = '#dcfce7';
-        strokeColor = '#15803d';
-      } else if (isVisited) {
-        fillColor = '#f0fdf4';
-        strokeColor = '#16a34a';
-      }
+      const r = node.type === 'server' ? 26 : node.type === 'router' ? 22 : 18;
+      const icon = node.type === 'server' ? '🖥️' : node.type === 'router' ? '📡' : '💻';
 
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       circle.setAttribute('cx', node.x);
       circle.setAttribute('cy', node.y);
-      circle.setAttribute('r', 22);
-      circle.setAttribute('fill', fillColor);
-      circle.setAttribute('stroke', strokeColor);
-      circle.setAttribute('stroke-width', '2');
+      circle.setAttribute('r', r);
       circle.setAttribute('class', circleClass);
       g.appendChild(circle);
 
       // Label
       const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       txt.setAttribute('x', node.x);
-      txt.setAttribute('y', node.y + 4);
+      txt.setAttribute('y', node.y);
       txt.setAttribute('text-anchor', 'middle');
-      txt.setAttribute('fill', textColor);
-      txt.setAttribute('font-size', '11');
-      txt.setAttribute('font-weight', '700');
-      txt.setAttribute('font-family', 'var(--font-mono)');
+      txt.setAttribute('dominant-baseline', 'central');
+      txt.setAttribute('class', 'node-text-id topo-label');
       txt.textContent = node.label;
       g.appendChild(txt);
 
-      // Sub-label (type)
+      // Sub-label (icon + label)
       const subTxt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       subTxt.setAttribute('x', node.x);
-      subTxt.setAttribute('y', node.y + 36);
+      subTxt.setAttribute('y', node.y + r + 13);
       subTxt.setAttribute('text-anchor', 'middle');
-      subTxt.setAttribute('fill', 'var(--text-muted)');
-      subTxt.setAttribute('font-size', '10');
-      subTxt.textContent = node.type.toUpperCase();
+      subTxt.setAttribute('class', 'node-text-type topo-sublabel');
+      subTxt.textContent = `${icon} ${node.label}`;
       g.appendChild(subTxt);
 
-      svg.appendChild(g);
+      nodesGroup.appendChild(g);
     });
   }
 
