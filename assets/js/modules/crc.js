@@ -372,6 +372,14 @@ document.addEventListener('DOMContentLoaded', function () {
         errorDetected: false,
       },
     });
+
+    // Automatically populate verification section with transmitted codeword and generator
+    if (verifyCwInput) {
+      verifyCwInput.value = result.codeword;
+    }
+    if (verifyGenInput) {
+      verifyGenInput.value = generator;
+    }
   }
 
   /* ═══════════════════════════════════════════════════════════

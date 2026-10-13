@@ -277,8 +277,8 @@ document.addEventListener('DOMContentLoaded', async function () {
       circle.setAttribute('cx', p.x);
       circle.setAttribute('cy', p.y);
       circle.setAttribute('r', isCur ? '16' : '12');
-      circle.setAttribute('fill', isCur ? 'rgba(79, 142, 247, 0.3)' : '#0f172a');
-      circle.setAttribute('stroke', isCur ? 'var(--color-primary)' : 'var(--border-color-light)');
+      circle.setAttribute('fill', isCur ? '#dcfce7' : '#ffffff');
+      circle.setAttribute('stroke', isCur ? 'var(--color-primary)' : 'var(--border-color)');
       circle.setAttribute('stroke-width', isCur ? '3' : '2');
       circle.style.cursor = 'pointer';
       circle.addEventListener('click', () => {
@@ -291,7 +291,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       txt.setAttribute('x', p.x);
       txt.setAttribute('y', p.y + 4);
       txt.setAttribute('text-anchor', 'middle');
-      txt.setAttribute('fill', '#fff');
+      txt.setAttribute('fill', '#111827');
       txt.setAttribute('font-size', '9');
       txt.setAttribute('font-weight', '700');
       txt.textContent = id;
@@ -300,9 +300,17 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   /* ── 7. Event Handlers ──────────────────────────────────── */
-  btnStep.addEventListener('click', iterateBellmanFord);
+  btnStep.addEventListener('click', function () {
+    if (isConverged) {
+      initTables();
+    }
+    iterateBellmanFord();
+  });
 
   btnConverge.addEventListener('click', function () {
+    if (isConverged) {
+      initTables();
+    }
     let loop = 0;
     while (!isConverged && loop < 15) {
       iterateBellmanFord();

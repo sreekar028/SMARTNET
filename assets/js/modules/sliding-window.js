@@ -245,6 +245,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ── 6. Event Handlers ──────────────────────────────────── */
   btnStart.addEventListener('click', function () {
+    if (base >= totalFrames) {
+      initSimulation();
+    }
+
     if (!isRunning) {
       isRunning = true;
       isPaused = false;
@@ -274,6 +278,9 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   btnStep.addEventListener('click', function () {
+    if (base >= totalFrames) {
+      initSimulation();
+    }
     if (!isRunning) {
       isRunning = true;
       isPaused = true;

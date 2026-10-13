@@ -391,6 +391,21 @@
       return;
     }
 
+    // If starting step when previous sequence already fully finished and drained, reset sequence & counters
+    if (state.sequenceIdx >= state.activeSequence.length && state.currentLevel === 0) {
+      state.timeStep = 0;
+      state.sequenceIdx = 0;
+      state.drainingMode = false;
+      state.totalInflow = 0;
+      state.totalConforming = 0;
+      state.totalDropped = 0;
+      state.history = [];
+      if (el.logTbody) el.logTbody.innerHTML = '';
+      renderBucketVisual();
+      updateMetricCards();
+      renderLiveChart();
+    }
+
     let incoming = 0;
 
     // Check if we still have incoming sequence packets
@@ -507,6 +522,22 @@
     el.btnPlay.classList.remove('btn-primary-sn');
     el.btnPlay.classList.add('btn-secondary-sn');
     updateResultsSection('Running...');
+
+    // If starting run when previous sequence already fully finished and drained, reset sequence & counters
+    if (state.sequenceIdx >= state.activeSequence.length && state.currentLevel === 0) {
+      state.timeStep = 0;
+      state.sequenceIdx = 0;
+      state.drainingMode = false;
+      state.totalInflow = 0;
+      state.totalConforming = 0;
+      state.totalDropped = 0;
+      state.history = [];
+      if (el.logTbody) el.logTbody.innerHTML = '';
+      renderBucketVisual();
+      updateMetricCards();
+      renderLiveChart();
+    }
+
     state.timer = setInterval(stepSimulation, state.speed);
   }
 
@@ -518,6 +549,15 @@
     if (state.timer) {
       clearInterval(state.timer);
       state.timer = null;
+    }
+    const streamEl = document.getElementById('lb-leak-stream');
+    if (streamEl) {
+      streamEl.classList.remove('active');
+      streamEl.classList.remove('dripping');
+    }
+    if (el.leakDrip) {
+      el.leakDrip.classList.remove('active');
+      el.leakDrip.classList.remove('dripping');
     }
     updateResultsSection(state.history.length > 0 ? (state.currentLevel === 0 && state.sequenceIdx >= state.activeSequence.length ? 'Completed' : 'Paused') : 'Ready');
   }
@@ -544,8 +584,19 @@
     updateResultsSection('Ready');
     renderLiveChart();
 
-    if (el.overflowChute) el.overflowChute.classList.remove('active');
-    if (el.leakDrip) el.leakDrip.classList.remove('active');
+    if (el.overflowChute) {
+      el.overflowChute.classList.remove('active');
+      el.overflowChute.classList.remove('overflowing');
+    }
+    const streamEl = document.getElementById('lb-leak-stream');
+    if (streamEl) {
+      streamEl.classList.remove('active');
+      streamEl.classList.remove('dripping');
+    }
+    if (el.leakDrip) {
+      el.leakDrip.classList.remove('active');
+      el.leakDrip.classList.remove('dripping');
+    }
 
     showToast('Simulation reset to initial state.');
   }
@@ -557,11 +608,11 @@
     if (el.bucketFluid) {
       el.bucketFluid.style.height = `${pct}%`;
       if (pct > 85) {
-        el.bucketFluid.style.background = 'linear-gradient(180deg, rgba(239, 68, 68, 0.8) 0%, rgba(220, 38, 38, 0.95) 100%)';
+        el.bucketFluid.style.background = 'linear-gradient(180deg, rgba(239, 68, 68, 0.85) 0%, rgba(220, 38, 38, 0.95) 100%)';
       } else if (pct > 60) {
-        el.bucketFluid.style.background = 'linear-gradient(180deg, rgba(245, 158, 11, 0.8) 0%, rgba(217, 119, 6, 0.95) 100%)';
+        el.bucketFluid.style.background = 'linear-gradient(180deg, rgba(245, 158, 11, 0.85) 0%, rgba(217, 119, 6, 0.95) 100%)';
       } else {
-        el.bucketFluid.style.background = 'linear-gradient(180deg, rgba(79, 142, 247, 0.75) 0%, rgba(37, 99, 235, 0.95) 100%)';
+        el.bucketFluid.style.background = 'linear-gradient(180deg, rgba(14, 165, 233, 0.8) 0%, rgba(2, 132, 199, 0.95) 100%)';
       }
     }
 
@@ -579,23 +630,64 @@
         el.packetGrid.appendChild(chip);
       }
     }
+
+    // Keep outflow stream visually dripping if bucket has water and simulation is active
+    const streamEl = document.getElementById('lb-leak-stream');
+    if (state.currentLevel > 0 && state.isRunning) {
+      if (el.leakDrip) {
+        el.leakDrip.classList.add('active');
+        el.leakDrip.classList.add('dripping');
+      }
+      if (streamEl) {
+        streamEl.classList.add('active');
+        streamEl.classList.add('dripping');
+      }
+    } else if (state.currentLevel === 0) {
+      if (el.leakDrip) {
+        el.leakDrip.classList.remove('active');
+        el.leakDrip.classList.remove('dripping');
+      }
+      if (streamEl) {
+        streamEl.classList.remove('active');
+        streamEl.classList.remove('dripping');
+      }
+    }
   }
 
   function triggerInflowAnimation(count) {
-    if (!el.inflowAnim || count <= 0) return;
-    el.inflowAnim.innerHTML = `<span style="font-size:0.75rem;font-weight:700;color:var(--color-primary);animation:pulse-dot 0.4s;">+${count}</span>`;
-    setTimeout(() => {
-      if (el.inflowAnim) el.inflowAnim.innerHTML = '';
-    }, 450);
+    if (!el.inflowAnim) return;
+    if (count > 0) {
+      el.inflowAnim.innerHTML = `<span class="water-drop-packet">+${count} Pkts</span>`;
+      el.inflowAnim.classList.add('active');
+      setTimeout(() => {
+        if (el.inflowAnim) {
+          el.inflowAnim.classList.remove('active');
+          el.inflowAnim.innerHTML = '';
+        }
+      }, Math.min(450, state.speed * 0.8));
+    }
   }
 
   function triggerOutflowAnimation(count) {
-    if (!el.leakDrip) return;
-    if (count > 0) {
-      el.leakDrip.classList.add('active');
-      setTimeout(() => {
-        if (el.leakDrip) el.leakDrip.classList.remove('active');
-      }, 500);
+    const streamEl = document.getElementById('lb-leak-stream');
+    if (count > 0 || (state.isRunning && state.currentLevel > 0)) {
+      if (el.leakDrip) {
+        el.leakDrip.classList.add('active');
+        el.leakDrip.classList.add('dripping');
+      }
+      if (streamEl) {
+        streamEl.classList.add('active');
+        streamEl.classList.add('dripping');
+      }
+    } else {
+      if (el.leakDrip) {
+        el.leakDrip.classList.remove('active');
+        el.leakDrip.classList.remove('dripping');
+      }
+      if (streamEl) {
+        streamEl.classList.remove('active');
+        streamEl.classList.remove('dripping');
+      }
     }
   }
 
@@ -603,9 +695,13 @@
     if (!el.overflowChute) return;
     if (droppedCount > 0) {
       el.overflowChute.classList.add('active');
+      el.overflowChute.classList.add('overflowing');
       if (el.overflowCount) el.overflowCount.textContent = `-${droppedCount} Drop`;
       setTimeout(() => {
-        if (el.overflowChute) el.overflowChute.classList.remove('active');
+        if (el.overflowChute) {
+          el.overflowChute.classList.remove('active');
+          el.overflowChute.classList.remove('overflowing');
+        }
       }, 800);
     }
   }

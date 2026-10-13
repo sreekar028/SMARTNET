@@ -175,16 +175,16 @@ SMARTNET.Topology = (function () {
 
     let content = `<defs>
       <linearGradient id="grad-server" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#4f8ef7" />
-        <stop offset="100%" stop-color="#2563eb" />
+        <stop offset="0%" stop-color="#15803d" />
+        <stop offset="100%" stop-color="#166534" />
       </linearGradient>
       <linearGradient id="grad-router" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#06d6a0" />
-        <stop offset="100%" stop-color="#059669" />
+        <stop offset="0%" stop-color="#22c55e" />
+        <stop offset="100%" stop-color="#16a34a" />
       </linearGradient>
       <linearGradient id="grad-host" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stop-color="#f59e0b" />
-        <stop offset="100%" stop-color="#d97706" />
+        <stop offset="0%" stop-color="#475569" />
+        <stop offset="100%" stop-color="#334155" />
       </linearGradient>
     </defs>`;
 

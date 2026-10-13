@@ -146,11 +146,23 @@ document.addEventListener('DOMContentLoaded', async function () {
       else if (inFinalPath) circleClass += ' path';
       else if (isVisited) circleClass += ' visited';
 
-      let fillColor = '#0f172a';
-      let strokeColor = '#3b82f6';
-      if (node.type === 'server') strokeColor = '#8b5cf6';
-      if (node.type === 'router') strokeColor = '#3b82f6';
-      if (node.type === 'host')   strokeColor = '#06d6a0';
+      let fillColor = '#ffffff';
+      let strokeColor = '#94a3b8';
+      let textColor = '#111827';
+      if (node.type === 'server') { strokeColor = '#15803d'; fillColor = '#dcfce7'; }
+      if (node.type === 'router') { strokeColor = '#16a34a'; fillColor = '#f0fdf4'; }
+      if (node.type === 'host')   { strokeColor = '#64748b'; fillColor = '#ffffff'; }
+
+      if (isCur) {
+        fillColor = '#fef3c7';
+        strokeColor = '#d97706';
+      } else if (inFinalPath) {
+        fillColor = '#dcfce7';
+        strokeColor = '#15803d';
+      } else if (isVisited) {
+        fillColor = '#f0fdf4';
+        strokeColor = '#16a34a';
+      }
 
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       circle.setAttribute('cx', node.x);
@@ -167,7 +179,7 @@ document.addEventListener('DOMContentLoaded', async function () {
       txt.setAttribute('x', node.x);
       txt.setAttribute('y', node.y + 4);
       txt.setAttribute('text-anchor', 'middle');
-      txt.setAttribute('fill', '#fff');
+      txt.setAttribute('fill', textColor);
       txt.setAttribute('font-size', '11');
       txt.setAttribute('font-weight', '700');
       txt.setAttribute('font-family', 'var(--font-mono)');
@@ -348,7 +360,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   function stepThrough() {
-    if (steps.length === 0) {
+    if (steps.length === 0 || currentStepIdx >= steps.length - 1) {
       const src  = sourceSelect.value;
       const dest = destSelect.value;
       const res = computeDijkstra(src, dest);
@@ -358,11 +370,9 @@ document.addEventListener('DOMContentLoaded', async function () {
       stepTbody.innerHTML = '';
       statusBadge.textContent = 'Stepping';
       statusBadge.className = 'sn-badge warning';
-    } else if (currentStepIdx < steps.length - 1) {
-      currentStepIdx++;
+      resultCard.style.display = 'none';
     } else {
-      runFullAlgorithm();
-      return;
+      currentStepIdx++;
     }
 
     const s = steps[currentStepIdx];

@@ -127,9 +127,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   position: relative;
-  min-height: 440px;
+  min-height: 480px;
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .bucket-header-info {
@@ -138,83 +140,96 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-md);
-  font-size: 0.82rem;
-  color: var(--text-muted);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-color-light);
+  padding-bottom: 8px;
 }
 
 .bucket-stage {
   position: relative;
-  width: 280px;
-  height: 320px;
+  width: 300px;
+  height: 380px;
+  margin: 0 auto;
   display: flex;
-  justify-content: center;
-  align-items: flex-end;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
 }
 
-/* Inflow Funnel */
+/* Inflow Funnel / Pipe */
 .inflow-pipe {
   position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
-  width: 48px;
-  height: 36px;
-  background: linear-gradient(180deg, var(--bg-card-hover), var(--border-color-light));
-  border-left: 2px solid var(--border-color);
-  border-right: 2px solid var(--border-color);
-  border-bottom: 2px solid var(--border-color);
-  border-radius: 0 0 6px 6px;
+  padding: 4px 16px;
+  background: #f0fdf4;
+  border: 2px solid #16a34a;
+  border-radius: 6px 6px 0 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
-  color: var(--color-primary-light);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #166534;
+  letter-spacing: 0.04em;
   z-index: 5;
+  box-shadow: 0 2px 6px rgba(22, 163, 74, 0.1);
 }
 
 .inflow-particles {
   position: absolute;
-  top: 36px;
+  top: 30px;
   left: 50%;
   transform: translateX(-50%);
-  width: 30px;
-  height: 44px;
+  width: 80px;
+  height: 50px;
   pointer-events: none;
-  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 6;
 }
 
 .packet-drop-anim {
-  width: 16px;
-  height: 16px;
-  background: var(--color-primary);
-  border-radius: 4px;
-  margin: 0 auto;
   opacity: 0;
-  transform: translateY(-20px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 .packet-drop-anim.active {
-  animation: packetFall 0.45s ease-in forwards;
+  animation: packetFall 0.5s ease-in forwards;
 }
 @keyframes packetFall {
-  0% { opacity: 0; transform: translateY(-10px) scale(0.7); }
-  40% { opacity: 1; transform: translateY(12px) scale(1); }
-  100% { opacity: 0; transform: translateY(38px) scale(0.9); }
+  0% { opacity: 0; transform: translateY(-8px) scale(0.7); }
+  35% { opacity: 1; transform: translateY(14px) scale(1); }
+  100% { opacity: 0; transform: translateY(44px) scale(0.8); }
 }
 
-/* The Glass Bucket */
+.water-drop-packet {
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4);
+}
+
+/* The Recognizable Glass/Lab Bucket */
 .glass-bucket {
   position: relative;
-  width: 190px;
-  height: 220px;
-  background: rgba(26, 34, 54, 0.45);
-  border-left: 3px solid rgba(79, 142, 247, 0.6);
-  border-right: 3px solid rgba(79, 142, 247, 0.6);
-  border-bottom: 4px solid var(--color-primary);
-  border-radius: 0 0 16px 16px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35), inset 0 0 15px rgba(79, 142, 247, 0.08);
+  width: 220px;
+  height: 230px;
+  background: rgba(240, 249, 255, 0.6);
+  border-left: 3px solid #0284c7;
+  border-right: 3px solid #0284c7;
+  border-bottom: 5px solid #0369a1;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 8px 24px rgba(2, 132, 199, 0.12), inset 0 0 16px rgba(2, 132, 199, 0.05);
   overflow: hidden;
-  backdrop-filter: blur(4px);
-  margin-bottom: 28px;
+  margin-bottom: 34px;
 }
 
 /* Fluid / Water level */
@@ -224,17 +239,17 @@
   left: 0;
   right: 0;
   height: 0%;
-  background: linear-gradient(180deg, rgba(6, 214, 160, 0.75) 0%, rgba(79, 142, 247, 0.85) 100%);
+  background: linear-gradient(180deg, #38bdf8 0%, #0284c7 100%);
   transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
-  box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 2px 6px rgba(255, 255, 255, 0.5);
 }
 
 .bucket-fluid.high {
-  background: linear-gradient(180deg, rgba(245, 158, 11, 0.8) 0%, rgba(79, 142, 247, 0.85) 100%);
+  background: linear-gradient(180deg, rgba(245, 158, 11, 0.85) 0%, rgba(217, 119, 6, 0.95) 100%);
 }
 
 .bucket-fluid.full {
-  background: linear-gradient(180deg, rgba(239, 68, 68, 0.85) 0%, rgba(245, 158, 11, 0.85) 100%);
+  background: linear-gradient(180deg, rgba(239, 68, 68, 0.85) 0%, rgba(220, 38, 38, 0.95) 100%);
 }
 
 /* Wave crest animation */
@@ -244,8 +259,8 @@
   left: 0;
   right: 0;
   height: 8px;
-  background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.4), transparent 70%);
-  opacity: 0.7;
+  background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.7), transparent 70%);
+  opacity: 0.8;
 }
 
 /* Queued packets inside bucket */
@@ -262,9 +277,9 @@
 }
 
 .packet-chip {
-  background: rgba(17, 24, 39, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: #fff;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #bae6fd;
+  color: #0369a1;
   border-radius: 4px;
   padding: 2px 6px;
   font-size: 0.68rem;
@@ -282,7 +297,7 @@
 /* Capacity Grid Lines */
 .bucket-markings {
   position: absolute;
-  right: 4px;
+  right: 6px;
   top: 10px;
   bottom: 10px;
   display: flex;
@@ -291,8 +306,9 @@
   align-items: flex-end;
   pointer-events: none;
   font-family: var(--font-mono);
-  font-size: 0.64rem;
-  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: #475569;
   z-index: 3;
 }
 .marking-line {
@@ -301,72 +317,127 @@
   gap: 4px;
 }
 .marking-dash {
-  width: 8px;
-  height: 1px;
-  background: var(--border-color-light);
+  width: 10px;
+  height: 1.5px;
+  background: #64748b;
 }
 
 /* Overflow Splash Zone */
 .overflow-chute {
   position: absolute;
-  top: 60px;
-  right: 12px;
-  width: 50px;
+  top: 70px;
+  right: 4px;
+  width: 58px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: var(--color-danger);
-  opacity: 0.3;
+  opacity: 0.25;
   transition: opacity 0.3s;
 }
+.overflow-chute.active,
 .overflow-chute.overflowing {
   opacity: 1;
   animation: pulseOverflow 0.6s infinite alternate;
 }
 @keyframes pulseOverflow {
   from { transform: translateY(0); filter: drop-shadow(0 0 2px var(--color-danger)); }
-  to { transform: translateY(4px); filter: drop-shadow(0 0 8px var(--color-danger)); }
+  to { transform: translateY(4px); filter: drop-shadow(0 0 6px var(--color-danger)); }
 }
 
-/* Outflow Tap */
+/* Outflow Spigot & Continuous Leaking Stream */
 .outflow-spigot {
   position: absolute;
-  bottom: 4px;
+  bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
-  width: 22px;
-  height: 24px;
-  background: var(--border-color-light);
-  border: 2px solid var(--border-color);
-  border-radius: 0 0 4px 4px;
+  width: 24px;
+  height: 22px;
+  background: #94a3b8;
+  border: 2px solid #64748b;
+  border-radius: 0 0 6px 6px;
   z-index: 4;
 }
 
 .leak-drop-stream {
   position: absolute;
-  bottom: -22px;
+  bottom: -32px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 3px;
+  height: 36px;
+  pointer-events: none;
+  z-index: 3;
 }
 .leak-particle {
-  width: 6px;
-  height: 8px;
-  background: var(--color-accent);
-  border-radius: 50% 50% 40% 40%;
+  width: 7px;
+  height: 10px;
+  background: #0284c7;
+  border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
   opacity: 0;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.4);
 }
+
+.leak-particle.active,
+.leak-particle.dripping,
+.leak-drop-stream.active .leak-particle,
+.leak-drop-stream.dripping .leak-particle {
+  opacity: 1;
+}
+
+.leak-drop-stream.active .drop-1,
+.leak-drop-stream.dripping .drop-1,
+.leak-particle.active,
 .leak-particle.dripping {
-  animation: drip 0.5s infinite linear;
+  animation: dripFall 0.6s infinite linear;
 }
-@keyframes drip {
-  0% { opacity: 0; transform: translateY(0) scale(0.8); }
-  50% { opacity: 1; transform: translateY(8px) scale(1); }
-  100% { opacity: 0; transform: translateY(18px) scale(0.6); }
+
+.leak-drop-stream.active .drop-2,
+.leak-drop-stream.dripping .drop-2 {
+  animation: dripFall 0.6s infinite linear 0.2s;
+}
+
+.leak-drop-stream.active .drop-3,
+.leak-drop-stream.dripping .drop-3 {
+  animation: dripFall 0.6s infinite linear 0.4s;
+}
+
+@keyframes dripFall {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.6);
+  }
+  25% {
+    opacity: 1;
+    transform: translateY(2px) scale(1);
+  }
+  75% {
+    opacity: 0.9;
+    transform: translateY(18px) scale(0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(28px) scale(0.4);
+  }
+}
+
+.outflow-tray {
+  position: absolute;
+  bottom: -22px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #f0fdf4;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #166534;
+  white-space: nowrap;
 }
 
 /* ── NETWORK TOPOLOGY CONTEXT CARD ─────────────────────────── */
