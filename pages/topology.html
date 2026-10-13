@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Interactive Organizational Network Topology for SMARTNET — Common topology graph with live shortest-path routing, node inspection, and link telemetry." />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>Network Topology — SMARTNET</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+
+  <!-- SMARTNET Global Stylesheet -->
+  <link rel="stylesheet" href="../assets/css/style.css" />
+
+  <!-- Topology Scoped Styles -->
+  <style>
+    .topo-hero {
+      background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-base) 100%);
+      border-bottom: 1px solid var(--border-color);
+      padding: var(--space-xl) 0 var(--space-lg);
+      position: relative;
+      overflow: hidden;
+    }
+    .topo-hero::before {
+      content: '';
+      position: absolute;
+      top: -30%; right: -10%;
+      width: 45%; height: 160%;
+      background: radial-gradient(ellipse, rgba(79, 142, 247, 0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .topo-canvas-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+      padding: var(--space-md);
+      position: relative;
+      overflow: hidden;
+    }
+    .topo-svg-container {
+      width: 100%;
+      height: auto;
+      max-height: 480px;
+    }
+    .topo-svg-container svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    /* SVG Link & Node classes */
+    .svg-topo-link {
+      stroke: var(--border-color-light);
+      stroke-width: 2.5;
+      transition: stroke 0.3s ease, stroke-width 0.3s ease;
+      cursor: pointer;
+    }
+    .svg-topo-link:hover {
+      stroke: var(--color-primary-light);
+      stroke-width: 4;
+    }
+    .svg-topo-link.highlighted-path {
+      stroke: var(--color-accent);
+      stroke-width: 4.5;
+      stroke-dasharray: 6 3;
+      animation: dashMove 1.5s linear infinite;
+      filter: drop-shadow(0 0 6px rgba(6, 214, 160, 0.7));
+    }
+    @keyframes dashMove {
+      from { stroke-dashoffset: 24; }
+      to { stroke-dashoffset: 0; }
+    }
+    .svg-topo-node {
+      cursor: pointer;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+    .svg-topo-node:hover circle {
+      filter: drop-shadow(0 0 10px rgba(79, 142, 247, 0.8));
+    }
+    .svg-topo-node.selected circle {
+      stroke: #ffffff !important;
+      stroke-width: 3.5 !important;
+      filter: drop-shadow(0 0 14px rgba(79, 142, 247, 0.9)) !important;
+    }
+    .svg-topo-node.path-node circle {
+      stroke: var(--color-accent) !important;
+      stroke-width: 3.5 !important;
+      filter: drop-shadow(0 0 12px rgba(6, 214, 160, 0.8)) !important;
+    }
+    .link-badge-bg {
+      fill: var(--bg-surface);
+      stroke: var(--border-color);
+      stroke-width: 1;
+      rx: 4; ry: 4;
+    }
+    .link-badge-text {
+      font-family: var(--font-mono);
+      font-size: 9px;
+      fill: var(--text-muted);
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+    .route-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-lg);
+      padding: var(--space-md);
+      height: 100%;
+    }
+    .node-detail-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--space-md);
+    }
+    .path-step-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(6, 214, 160, 0.12);
+      border: 1px solid rgba(6, 214, 160, 0.35);
+      border-radius: var(--border-radius-sm);
+      color: var(--color-accent);
+      font-weight: 700;
+      font-family: var(--font-mono);
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body data-page="topology">
+
+  <!-- Shared Navigation Injection Container -->
+  <div id="sn-nav-container"></div>
+
+  <!-- Hero Header -->
+  <header class="topo-hero">
+    <div class="container">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+          <a href="dashboard.html" class="btn-secondary-sn mb-3 d-inline-flex align-items-center gap-1" style="font-size:0.8rem;padding:4px 12px;">
+            ← Dashboard
+          </a>
+          <div class="d-flex align-items-center gap-3">
+            <div class="sn-card-icon blue" style="width:52px;height:52px;font-size:1.5rem;">🗺️</div>
+            <div>
+              <h1 style="font-size:clamp(1.6rem, 3.5vw, 2.2rem);margin:0;">Organizational Network Topology</h1>
+              <p style="margin:4px 0 0;font-size:0.9rem;color:var(--text-secondary);">
+                Centralized interactive topology graph shared across all SMARTNET routing, simulation, and analysis modules.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <span class="sn-badge success">
+            <span class="status-dot"></span> Topology Online
+          </span>
+          <button class="btn btn-outline-secondary btn-sm" id="btn-reset-view">
+            Reset View
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="container my-4">
+
+    <!-- KPI Summary Row -->
+    <section class="row g-3 mb-4" aria-label="Topology Statistics">
+      <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">TOTAL NODES</div>
+          <div class="fs-4 fw-bold text-primary mt-1" id="stat-total-nodes">8</div>
+          <div class="text-muted" style="font-size: 0.72rem;">Centralized Graph</div>
+        </div>
+      </div>
+
+      <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">CORE ROUTERS</div>
+          <div class="fs-4 fw-bold text-accent mt-1" id="stat-routers">3</div>
+          <div class="text-muted" style="font-size: 0.72rem;">R1, R2, R3</div>
+        </div>
+      </div>
+
+      <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">CLIENT HOSTS</div>
+          <div class="fs-4 fw-bold text-warning mt-1" id="stat-hosts">4</div>
+          <div class="text-muted" style="font-size: 0.72rem;">PC1 – PC4</div>
+        </div>
+      </div>
+
+      <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">ENTERPRISE SERVER</div>
+          <div class="fs-4 fw-bold text-info mt-1" id="stat-servers">1</div>
+          <div class="text-muted" style="font-size: 0.72rem;">Core Data Server</div>
+        </div>
+      </div>
+
+      <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">PHYSICAL LINKS</div>
+          <div class="fs-4 fw-bold text-light mt-1" id="stat-links">7</div>
+          <div class="text-muted" style="font-size: 0.72rem;">Duplex Connections</div>
+        </div>
+      </div>
+
+      <div class="col-xl-2 col-md-4 col-sm-6">
+        <div class="card p-3 text-center h-100">
+          <div class="text-muted small fw-bold">ACTIVE SUBNETS</div>
+          <div class="fs-4 fw-bold text-success mt-1">2 + Core</div>
+          <div class="text-muted" style="font-size: 0.72rem;">192.168.1.0 / 2.0</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Graph & Control Panel -->
+    <div class="row g-4 mb-4">
+
+      <!-- Left: Interactive Topology SVG -->
+      <div class="col-lg-8">
+        <div class="topo-canvas-box h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h6 fw-bold mb-0 text-primary-light">
+              🌐 Network Topology Graph (Click any node to inspect)
+            </h2>
+            <div class="d-flex align-items-center gap-2 small">
+              <span class="d-inline-flex align-items-center gap-1"><span style="width:10px;height:10px;border-radius:50%;background:#4f8ef7;display:inline-block;"></span> Server</span>
+              <span class="d-inline-flex align-items-center gap-1"><span style="width:10px;height:10px;border-radius:50%;background:#06d6a0;display:inline-block;"></span> Router</span>
+              <span class="d-inline-flex align-items-center gap-1"><span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;display:inline-block;"></span> PC Host</span>
+            </div>
+          </div>
+
+          <div class="topo-svg-container">
+            <svg id="interactive-topology-svg" viewBox="0 0 740 400" preserveAspectRatio="xMidYMid meet">
+              <!-- Dynamically populated via assets/js/topology.js -->
+            </svg>
+          </div>
+
+          <div class="mt-2 text-center text-muted small">
+            Hover over links to view bandwidth &amp; metric cost · Click nodes to view device specs and connected interfaces
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Routing Pathfinder & Inspector -->
+      <div class="col-lg-4">
+        <div class="route-panel d-flex flex-column gap-3">
+
+          <!-- Route Highlighting Tool -->
+          <div class="p-3 bg-dark rounded border border-secondary">
+            <h3 class="h6 fw-bold text-accent mb-3 d-flex align-items-center gap-2">
+              <span>🧭</span> Dijkstra Shortest Path Finder
+            </h3>
+
+            <div class="mb-2">
+              <label for="route-src-select" class="form-label small text-muted mb-1">Source Node:</label>
+              <select class="form-select form-select-sm" id="route-src-select">
+                <option value="PC1" selected>PC1 (Host - Subnet 1)</option>
+                <option value="PC2">PC2 (Host - Subnet 1)</option>
+                <option value="PC3">PC3 (Host - Subnet 2)</option>
+                <option value="PC4">PC4 (Host - Subnet 2)</option>
+                <option value="R1">R1 (Subnet 1 Router)</option>
+                <option value="R2">R2 (Subnet 2 Router)</option>
+                <option value="R3">R3 (Core Router)</option>
+                <option value="SERVER">SERVER (Enterprise Server)</option>
+              </select>
+            </div>
+
+            <div class="mb-3">
+              <label for="route-dst-select" class="form-label small text-muted mb-1">Destination Node:</label>
+              <select class="form-select form-select-sm" id="route-dst-select">
+                <option value="SERVER" selected>SERVER (Enterprise Server)</option>
+                <option value="PC1">PC1 (Host - Subnet 1)</option>
+                <option value="PC2">PC2 (Host - Subnet 1)</option>
+                <option value="PC3">PC3 (Host - Subnet 2)</option>
+                <option value="PC4">PC4 (Host - Subnet 2)</option>
+                <option value="R1">R1 (Subnet 1 Router)</option>
+                <option value="R2">R2 (Subnet 2 Router)</option>
+                <option value="R3">R3 (Core Router)</option>
+              </select>
+            </div>
+
+            <div class="d-flex gap-2">
+              <button class="btn btn-primary btn-sm flex-fill" id="btn-calculate-path">
+                Highlight Route
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" id="btn-clear-path">
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <!-- Calculated Path Output Card -->
+          <div class="node-detail-card d-none" id="path-results-box">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="small fw-bold text-accent">Active Computed Path</span>
+              <span class="badge bg-success-subtle text-success border border-success" id="path-cost-badge">Cost: 4</span>
+            </div>
+            <div class="mb-2">
+              <div class="path-step-badge w-100 text-truncate justify-content-center" id="path-sequence-text">
+                PC1 → R1 → R3 → SERVER
+              </div>
+            </div>
+            <div class="row g-1 small text-muted text-center pt-1 border-top border-secondary">
+              <div class="col-4">Hops: <strong class="text-light" id="path-hops-count">3</strong></div>
+              <div class="col-4">Min BW: <strong class="text-light" id="path-min-bw">10 Mbps</strong></div>
+              <div class="col-4">Latency: <strong class="text-light" id="path-est-latency">~8 ms</strong></div>
+            </div>
+          </div>
+
+          <!-- Selected Node Details Card -->
+          <div class="node-detail-card flex-fill" id="node-inspector-box">
+            <h3 class="h6 fw-bold text-primary mb-2 d-flex align-items-center gap-2">
+              <span id="insp-icon">🖥️</span> <span id="insp-title">SERVER</span>
+            </h3>
+            <div class="small text-muted mb-2" id="insp-role">Enterprise Core Server</div>
+
+            <table class="table table-sm table-borderless small mb-0 font-monospace">
+              <tbody>
+                <tr>
+                  <td class="text-muted p-1" style="width:38%;">Node ID:</td>
+                  <td class="text-light p-1 fw-bold" id="insp-id">SERVER</td>
+                </tr>
+                <tr>
+                  <td class="text-muted p-1">IP Address:</td>
+                  <td class="text-info p-1" id="insp-ip">10.0.0.100</td>
+                </tr>
+                <tr>
+                  <td class="text-muted p-1">Subnet:</td>
+                  <td class="text-light p-1" id="insp-subnet">10.0.0.0/24</td>
+                </tr>
+                <tr>
+                  <td class="text-muted p-1">Neighbors:</td>
+                  <td class="text-accent p-1" id="insp-neighbors">R3 (1Gbps, Cost: 1)</td>
+                </tr>
+                <tr>
+                  <td class="text-muted p-1">Used In:</td>
+                  <td class="text-secondary p-1" id="insp-modules">Dijkstra, Distance Vector, Wireshark, NS2</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Subnet & Infrastructure Architecture Card -->
+    <section class="card mb-4" aria-labelledby="subnets-heading">
+      <div class="card-header py-2 fw-bold small text-primary-light">
+        🏢 SMARTNET Organizational Subnet Architecture
+      </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="p-3 bg-dark rounded border border-secondary h-100">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="fs-5">🖥️</span>
+                <strong class="text-primary">Core Backbone Network</strong>
+              </div>
+              <div class="small font-monospace text-muted mb-2">10.0.0.0 / 24 · Gigabit Transit</div>
+              <p class="small text-secondary mb-0">
+                Interconnects Enterprise Server and Core Router R3 with high-bandwidth 1 Gbps low-latency backbone link (Cost: 1).
+              </p>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="p-3 bg-dark rounded border border-secondary h-100">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="fs-5">📡</span>
+                <strong class="text-accent">Subnet 1 (Engineering / Sales)</strong>
+              </div>
+              <div class="small font-monospace text-muted mb-2">192.168.1.0 / 24 · Access Subnet</div>
+              <p class="small text-secondary mb-0">
+                Managed by distribution router R1. Serves PC1 (192.168.1.10) and PC2 (192.168.1.20) via 10 Mbps access lines.
+              </p>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <div class="p-3 bg-dark rounded border border-secondary h-100">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="fs-5">📡</span>
+                <strong class="text-warning">Subnet 2 (Operations / HR)</strong>
+              </div>
+              <div class="small font-monospace text-muted mb-2">192.168.2.0 / 24 · Access Subnet</div>
+              <p class="small text-secondary mb-0">
+                Managed by distribution router R2. Serves PC3 (192.168.2.10) and PC4 (192.168.2.20) via 10 Mbps access lines.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="sn-footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>© 2024 SMARTNET — Network Performance Analyzer &amp; Security Testing System</p>
+        <p style="color:var(--text-muted);">Common Organizational Network Topology</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+  <!-- SMARTNET Shared Layers -->
+  <script src="../assets/js/navigation.js"></script>
+  <script src="../assets/js/integration.js"></script>
+
+  <!-- Topology Controller Logic -->
+  <script src="../assets/js/topology.js"></script>
+
+</body>
+</html>
