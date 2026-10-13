@@ -216,6 +216,25 @@ SMARTNET.Topology = (function () {
       `;
     });
 
+    // --- Draw Directed Moving Dotted Route Animation ---
+    if (activePath && activePath.length >= 2) {
+      content += `<g class="route-animation-layer">`;
+      for (let i = 0; i < activePath.length - 1; i++) {
+        const uNode = nodeMap[activePath[i]];
+        const vNode = nodeMap[activePath[i + 1]];
+        if (uNode && vNode) {
+          content += `
+            <line class="animated-route-path"
+                  x1="${uNode.x}" y1="${uNode.y}"
+                  x2="${vNode.x}" y2="${vNode.y}">
+              <title>Active Route: ${activePath[i]} ➔ ${activePath[i + 1]}</title>
+            </line>
+          `;
+        }
+      }
+      content += `</g>`;
+    }
+
     // --- Draw Nodes ---
     topoData.nodes.forEach(n => {
       const r = n.type === 'server' ? 26 : n.type === 'router' ? 22 : 18;

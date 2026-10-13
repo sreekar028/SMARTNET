@@ -369,14 +369,14 @@
       const level = state.treeResult && state.treeResult.levels ? state.treeResult.levels[node.id] : undefined;
 
       svgHTML += `
-        <g class="bt-node-group" id="node-group-${node.id}" data-node-id="${node.id}" style="cursor:pointer;">
+        <g class="bt-node-group topo-node-group" id="node-group-${node.id}" data-node-id="${node.id}" style="cursor:pointer;">
           ${isRoot ? `<circle cx="${cx}" cy="${cy}" r="${r + 7}" class="node-root-halo" />` : ''}
-          <circle id="node-circle-${node.id}" cx="${cx}" cy="${cy}" r="${r}" class="node-circle ${stateClass}">
+          <circle id="node-circle-${node.id}" cx="${cx}" cy="${cy}" r="${r}" class="node-circle node-${node.type} topo-node-${node.type} ${stateClass}">
             <title>${node.label} (${node.type}) — State: ${currState}</title>
           </circle>
-          <text class="node-text-id" x="${cx}" y="${cy}">${node.label}</text>
-          <text class="node-text-type" x="${cx}" y="${cy + r + 13}">${icon} ${node.label}</text>
-          ${level !== undefined ? `<text class="node-level-tag" x="${cx}" y="${cy - r - 6}">Hop ${level}</text>` : ''}
+          <text class="node-text-id topo-label" x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central">${node.label}</text>
+          <text class="node-text-type topo-sublabel" x="${cx}" y="${cy + r + 13}" text-anchor="middle">${icon} ${node.label}</text>
+          ${level !== undefined ? `<text class="node-level-tag" x="${cx}" y="${cy - r - 7}" text-anchor="middle">Hop ${level}</text>` : ''}
         </g>
       `;
     });

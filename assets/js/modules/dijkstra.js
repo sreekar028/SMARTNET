@@ -141,6 +141,26 @@ document.addEventListener('DOMContentLoaded', async function () {
       linksGroup.appendChild(text);
     });
 
+    // Draw Directed Animated Shortest Path Lines (Moving Dotted Animation)
+    if (pathEdges && pathEdges.length > 0) {
+      const animGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      animGroup.setAttribute('class', 'route-animation-layer');
+      pathEdges.forEach(pe => {
+        const p1 = NODE_COORDS[pe.u];
+        const p2 = NODE_COORDS[pe.v];
+        if (!p1 || !p2) return;
+
+        const animLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        animLine.setAttribute('x1', p1.x);
+        animLine.setAttribute('y1', p1.y);
+        animLine.setAttribute('x2', p2.x);
+        animLine.setAttribute('y2', p2.y);
+        animLine.setAttribute('class', 'animated-route-path');
+        animGroup.appendChild(animLine);
+      });
+      linksGroup.appendChild(animGroup);
+    }
+
     // Draw Nodes
     Object.keys(NODE_COORDS).forEach(id => {
       const node = NODE_COORDS[id];
