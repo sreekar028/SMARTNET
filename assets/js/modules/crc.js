@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function () {
   SMARTNET.Integration.registerModule('crc', {
     label: 'CRC Simulation',
     status: 'ready',
-    member: 'Member 2',
+    member: '',
   });
 
   /* ── 2. DOM References ──────────────────────────────────── */

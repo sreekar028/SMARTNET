@@ -21,7 +21,7 @@
       subCategory: 'Flow & Congestion Control',
       status: 'ready',
       route: 'pages/modules/leaky-bucket/index.html',
-      member: 'Member 5 (Ganjikunta Swapna)',
+      member: '',
       version: '1.0.0'
     });
   }

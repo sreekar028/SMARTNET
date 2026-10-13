@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function () {
   SMARTNET.Integration.registerModule('slidingWindow', {
     label: 'Sliding Window',
     status: 'ready',
-    member: 'Member 3',
+    member: '',
   });
 
   /* ── 2. DOM Elements ────────────────────────────────────── */

@@ -20,7 +20,7 @@
       subCategory: 'Routing & Spanning Tree',
       status: 'ready',
       route: 'pages/modules/broadcast-tree/index.html',
-      member: 'Member 5 (Ganjikunta Swapna)',
+      member: '',
       version: '1.0.0'
     });
   }

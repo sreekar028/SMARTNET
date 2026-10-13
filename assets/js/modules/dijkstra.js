@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   SMARTNET.Integration.registerModule('dijkstra', {
     label: 'Dijkstra Routing',
     status: 'ready',
-    member: 'Member 4',
+    member: '',
   });
 
   /* ── 2. DOM Elements ────────────────────────────────────── */

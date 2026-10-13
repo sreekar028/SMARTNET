@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   SMARTNET.Integration.registerModule('distanceVector', {
     label: 'Distance Vector',
     status: 'ready',
-    member: 'Member 4',
+    member: '',
   });
 
   /* ── 2. DOM Elements ────────────────────────────────────── */

@@ -270,7 +270,7 @@ SMARTNET.NS2 = (function () {
     return `# ======================================================================
 # SMARTNET Organizational Topology — NS-2 Simulation Script
 # Topology: Server -- R3 -- (R1, R2) -- (PC1, PC2, PC3, PC4)
-# Generated for Member 7 NS2 Performance Analysis
+# SMARTNET NS2 Performance Analysis Script
 # ======================================================================
 
 set ns [new Simulator]

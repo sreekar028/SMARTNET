@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
   SMARTNET.Integration.registerModule('framing', {
     label: 'Framing Simulation',
     status: 'ready',
-    member: 'Member 2',
+    member: '',
   });
 
   /* ── 2. DOM References ──────────────────────────────────── */

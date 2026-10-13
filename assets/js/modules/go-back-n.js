@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', function () {
   SMARTNET.Integration.registerModule('goBackN', {
     label: 'Go-Back-N ARQ',
     status: 'ready',
-    member: 'Member 3',
+    member: '',
   });
 
   /* ── 2. DOM Elements ────────────────────────────────────── */
