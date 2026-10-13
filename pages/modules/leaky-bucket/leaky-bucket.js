@@ -391,8 +391,8 @@
       return;
     }
 
-    // If starting step when previous sequence already fully finished and drained, reset sequence & counters
-    if (state.sequenceIdx >= state.activeSequence.length && state.currentLevel === 0) {
+    // If user clicked Step when already completed, reset to start from beginning
+    if (!state.isRunning && state.sequenceIdx >= state.activeSequence.length && state.currentLevel === 0) {
       state.timeStep = 0;
       state.sequenceIdx = 0;
       state.drainingMode = false;
@@ -416,9 +416,7 @@
       // All input packets processed — drain remaining bucket (Section 18)
       state.drainingMode = true;
       if (state.currentLevel === 0) {
-        pauseSimulation();
-        updateResultsSection('Completed');
-        showToast('All packets processed and buffer completely drained!');
+        finishSimulation();
         return;
       }
       incoming = 0;
@@ -460,9 +458,15 @@
     triggerOverflowAnimation(dropped);
     renderBucketVisual();
     updateMetricCards();
-    updateResultsSection(state.isRunning ? 'Running...' : 'Paused');
     appendLogRow(stepRecord);
     renderLiveChart();
+
+    // Check completion condition: all input sequence packets consumed and queue drained to 0
+    if (state.sequenceIdx >= state.activeSequence.length && state.currentLevel === 0) {
+      finishSimulation();
+    } else {
+      updateResultsSection(state.isRunning ? 'Running...' : 'Paused');
+    }
   }
 
   /* ── 8. Manual Burst Injection ───────────────────────────── */
@@ -517,11 +521,11 @@
   function startSimulation() {
     if (!validateInputs()) return;
 
-    state.isRunning = true;
-    el.btnPlay.innerHTML = '⏸️ Pause';
-    el.btnPlay.classList.remove('btn-primary-sn');
-    el.btnPlay.classList.add('btn-secondary-sn');
-    updateResultsSection('Running...');
+    // Prevent duplicate timers when clicking Run repeatedly
+    if (state.timer) {
+      clearInterval(state.timer);
+      state.timer = null;
+    }
 
     // If starting run when previous sequence already fully finished and drained, reset sequence & counters
     if (state.sequenceIdx >= state.activeSequence.length && state.currentLevel === 0) {
@@ -538,7 +542,37 @@
       renderLiveChart();
     }
 
+    state.isRunning = true;
+    el.btnPlay.innerHTML = '⏸️ Pause';
+    el.btnPlay.classList.remove('btn-primary-sn');
+    el.btnPlay.classList.add('btn-secondary-sn');
+    updateResultsSection('Running...');
+
     state.timer = setInterval(stepSimulation, state.speed);
+  }
+
+  function finishSimulation() {
+    state.isRunning = false;
+    if (state.timer) {
+      clearInterval(state.timer);
+      state.timer = null;
+    }
+    el.btnPlay.innerHTML = '▶️ Run Simulation';
+    el.btnPlay.classList.add('btn-primary-sn');
+    el.btnPlay.classList.remove('btn-secondary-sn');
+
+    const streamEl = document.getElementById('lb-leak-stream');
+    if (streamEl) {
+      streamEl.classList.remove('active');
+      streamEl.classList.remove('dripping');
+    }
+    if (el.leakDrip) {
+      el.leakDrip.classList.remove('active');
+      el.leakDrip.classList.remove('dripping');
+    }
+
+    updateResultsSection('Completed');
+    showToast('Simulation complete: All packets processed and buffer queue completely drained!');
   }
 
   function pauseSimulation() {
@@ -1025,6 +1059,20 @@
   /* ── 17. Window Resize Handler ───────────────────────────── */
   window.addEventListener('resize', () => {
     renderLiveChart();
+  });
+
+  // Ensure timers do not persist in background if user leaves or navigates away
+  window.addEventListener('beforeunload', function () {
+    if (state.timer) {
+      clearInterval(state.timer);
+      state.timer = null;
+    }
+  });
+  window.addEventListener('pagehide', function () {
+    if (state.timer) {
+      clearInterval(state.timer);
+      state.timer = null;
+    }
   });
 
   /* ── 18. Bootstrap Lifecycle ─────────────────────────────── */

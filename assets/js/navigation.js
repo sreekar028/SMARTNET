@@ -10,6 +10,64 @@
 
 var SMARTNET = window.SMARTNET || {};
 
+/* ── Global Theme Manager ────────────────────────────────────
+   Handles Light Green / Dark Forest theme toggling and persistence.
+   ─────────────────────────────────────────────────────────── */
+SMARTNET.Theme = (function () {
+  'use strict';
+  const STORAGE_KEY = 'smartnet_theme';
+
+  function getTheme() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved === 'dark' || saved === 'light') return saved;
+    } catch (e) {}
+    return 'light';
+  }
+
+  function applyTheme(theme) {
+    const isDark = theme === 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+    if (document.body) {
+      document.body.setAttribute('data-theme', theme);
+    }
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) {
+      metaTheme.setAttribute('content', isDark ? '#0b120f' : '#15803d');
+    }
+    const btn = document.getElementById('sn-theme-toggle');
+    if (btn) {
+      btn.textContent = isDark ? '☀️' : '🌙';
+      btn.setAttribute('title', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+      btn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch (e) {}
+  }
+
+  function toggle() {
+    const current = getTheme();
+    const next = current === 'dark' ? 'light' : 'dark';
+    applyTheme(next);
+    return next;
+  }
+
+  function init() {
+    applyTheme(getTheme());
+  }
+
+  // Initialize as soon as script runs
+  init();
+
+  return {
+    getTheme,
+    applyTheme,
+    toggle,
+    init
+  };
+})();
+
 SMARTNET.Navigation = (function () {
   'use strict';
 
@@ -189,6 +247,9 @@ SMARTNET.Navigation = (function () {
         <span class="sn-badge success">
           <span class="status-dot"></span> System Online
         </span>
+        <button class="sn-theme-toggle" id="sn-theme-toggle" type="button"
+                aria-label="${SMARTNET.Theme && SMARTNET.Theme.getTheme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}"
+                title="${SMARTNET.Theme && SMARTNET.Theme.getTheme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}">${SMARTNET.Theme && SMARTNET.Theme.getTheme() === 'dark' ? '☀️' : '🌙'}</button>
       </div>
     </div>
   </div>
@@ -267,6 +328,17 @@ SMARTNET.Navigation = (function () {
         }
       });
     });
+
+    // Theme toggle button click listener
+    const themeBtn = container.querySelector('#sn-theme-toggle');
+    if (themeBtn) {
+      themeBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        if (SMARTNET.Theme) {
+          SMARTNET.Theme.toggle();
+        }
+      });
+    }
   }
 
   return {
