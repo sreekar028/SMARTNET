@@ -164,7 +164,6 @@ SMARTNET.Navigation = (function () {
               aria-label="${SMARTNET.Theme && SMARTNET.Theme.getTheme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}"
               title="${SMARTNET.Theme && SMARTNET.Theme.getTheme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}">${SMARTNET.Theme && SMARTNET.Theme.getTheme() === 'dark' ? '☀️' : '🌙'}</button>
       <button class="navbar-toggler" type="button"
-              data-bs-toggle="collapse" data-bs-target="#snNavCollapse"
               aria-controls="snNavCollapse" aria-expanded="false"
               aria-label="Toggle navigation" id="nav-toggler">
         <span class="navbar-toggler-icon"></span>
@@ -197,7 +196,7 @@ SMARTNET.Navigation = (function () {
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#"
              id="nav-link-simulations" role="button"
-             data-bs-toggle="dropdown" aria-expanded="false"
+             aria-expanded="false"
              data-nav-key="simulations">
             <span>⚗️</span> Simulations
           </a>
@@ -220,7 +219,7 @@ SMARTNET.Navigation = (function () {
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#"
              id="nav-link-analysis" role="button"
-             data-bs-toggle="dropdown" aria-expanded="false"
+             aria-expanded="false"
              data-nav-key="analysis">
             <span>🔬</span> Analysis Tools
           </a>
@@ -273,6 +272,22 @@ SMARTNET.Navigation = (function () {
     });
   }
 
+  function ensureFavicon(root) {
+    if (!document.querySelector('link[rel*="icon"]')) {
+      const svgIcon = document.createElement('link');
+      svgIcon.rel = 'icon';
+      svgIcon.type = 'image/svg+xml';
+      svgIcon.href = root + 'assets/images/favicon.svg';
+      document.head.appendChild(svgIcon);
+
+      const altIcon = document.createElement('link');
+      altIcon.rel = 'alternate icon';
+      altIcon.type = 'image/png';
+      altIcon.href = root + 'assets/images/favicon.png';
+      document.head.appendChild(altIcon);
+    }
+  }
+
   /* ── Public API ──────────────────────────────────────────── */
   function init(containerId) {
     const container = document.getElementById(containerId || 'sn-nav-container');
@@ -281,6 +296,7 @@ SMARTNET.Navigation = (function () {
       return;
     }
     const root = getRootPrefix();
+    ensureFavicon(root);
     container.innerHTML = buildNavHTML(root);
     setActiveLink();
 
