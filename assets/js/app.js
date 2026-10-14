@@ -198,7 +198,19 @@ document.addEventListener('DOMContentLoaded', function () {
   }
   updatePerformanceMetrics();
 
-  /* ── 6. Quick action button nav ────────────────────────── */
+  /* ── 6. Run Simulation button click handler ─────────────── */
+  const btnRunSim = document.getElementById('btn-run-simulation');
+  if (btnRunSim) {
+    btnRunSim.addEventListener('click', function (e) {
+      const simSection = document.getElementById('simulation-lab');
+      if (simSection) {
+        e.preventDefault();
+        simSection.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  }
+
+  /* ── 7. Quick action button nav ────────────────────────── */
   // Buttons are plain <a> tags — no JS needed for navigation.
   // This hook is available for future module status injection.
   SMARTNET.Integration.on('integration:ready', function () {

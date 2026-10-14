@@ -78,7 +78,7 @@ SMARTNET.Navigation = (function () {
   const ROUTES = {
     dashboard:       'pages/dashboard.html',
     topology:        'pages/topology.html',
-    simulations:     'pages/simulations.html',
+    simulations:     'pages/dashboard.html#simulation-lab',
     // Simulation sub-modules
     framing:         'pages/modules/framing/index.html',
     crc:             'pages/modules/crc/index.html',
