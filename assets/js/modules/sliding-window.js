@@ -53,8 +53,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const mState  = document.getElementById('m-sw-state');
 
   /* ── 3. Simulation State ─────────────────────────────────── */
-  let totalFrames = parseInt(totalFramesIn.value, 10);
-  let windowSize  = parseInt(windowSizeIn.value, 10);
+  let totalFrames = parseInt(totalFramesIn.value, 10) || 8;
+  let windowSize  = parseInt(windowSizeIn.value, 10) || 4;
   let base        = 0;  // Oldest unacknowledged frame
   let nextSeqNum  = 0;  // Next frame to transmit
   let frames      = []; // Array of { seq, status: 'waiting'|'in-flight'|'acked' }
@@ -63,17 +63,38 @@ document.addEventListener('DOMContentLoaded', function () {
   let isPaused    = false;
   let timerId     = null;
   let startTime   = null;
+  let currentRunId = 0; // Generation token to cancel stale animations on reset/re-run
 
-  /* ── 4. Initialization & Render ─────────────────────────── */
+  /* ── 4. Validation ──────────────────────────────────────── */
+  function validateInputs() {
+    const s = senderSelect.value;
+    const r = receiverSelect.value;
+    if (s === r) {
+      statusBadge.textContent = 'Invalid Nodes';
+      statusBadge.className = 'sn-badge danger';
+      mState.textContent = 'ERROR';
+      logEvent(`⚠️ <span class="text-danger">Validation Error: Sender and Receiver cannot both be "${s}".</span>`);
+      return false;
+    }
+    return true;
+  }
+
+  /* ── 5. Initialization & Render ─────────────────────────── */
   function initSimulation() {
+    currentRunId++; // Invalidate any scheduled flight callbacks from previous runs
     clearTimeout(timerId);
     timerId = null;
     isRunning = false;
     isPaused = false;
     startTime = Date.now();
 
-    totalFrames = parseInt(totalFramesIn.value, 10);
-    windowSize  = parseInt(windowSizeIn.value, 10);
+    totalFrames = Math.max(1, parseInt(totalFramesIn.value, 10) || 8);
+    const parsedWin = parseInt(windowSizeIn.value, 10) || 4;
+    windowSize = Math.max(1, Math.min(parsedWin, totalFrames));
+
+    valFramesEl.textContent = totalFrames;
+    valWindowEl.textContent = windowSize;
+
     base = 0;
     nextSeqNum = 0;
 
@@ -85,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
     senderNameEl.textContent = senderSelect.value;
     receiverNameEl.textContent = receiverSelect.value;
     btnStart.textContent = '▶ Start';
+    btnStart.disabled = false;
     statusBadge.textContent = 'Ready';
     statusBadge.className = 'sn-badge muted';
     mState.textContent = 'READY';
@@ -142,8 +164,10 @@ document.addEventListener('DOMContentLoaded', function () {
     logBox.scrollTop = logBox.scrollHeight;
   }
 
-  /* ── 5. Protocol Engine ─────────────────────────────────── */
+  /* ── 6. Protocol Engine ─────────────────────────────────── */
   function stepSimulation() {
+    const runId = currentRunId;
+
     if (base >= totalFrames) {
       completeSimulation();
       return;
@@ -160,9 +184,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
       logEvent(`Sender transmitted <strong>Frame #${frameIndex}</strong> (Window [${base}, ${base + windowSize - 1}])`);
       animateFlight(frameIndex, 'frame', speed, () => {
+        if (runId !== currentRunId) return;
         // Frame received at destination
         logEvent(`Receiver accepted <strong>Frame #${frameIndex}</strong>. Generating ACK #${frameIndex}...`);
         animateFlight(frameIndex, 'ack', speed, () => {
+          if (runId !== currentRunId) return;
           // ACK received by sender
           frames[frameIndex].status = 'acked';
           logEvent(`Sender received <strong>ACK #${frameIndex}</strong>.`);
@@ -186,11 +212,17 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (isRunning && !isPaused && base < totalFrames) {
-      timerId = setTimeout(stepSimulation, speed);
+      clearTimeout(timerId);
+      timerId = setTimeout(() => {
+        if (runId === currentRunId) {
+          stepSimulation();
+        }
+      }, speed);
     }
   }
 
   function animateFlight(frameSeq, type, duration, onComplete) {
+    const runId = currentRunId;
     const el = document.createElement('div');
     el.className = `sw-transit-item ${type === 'frame' ? 'sw-transit-frame' : 'sw-transit-ack'}`;
     el.innerHTML = type === 'frame' ? `📦 Frame #${frameSeq} ➔` : `✓ ACK #${frameSeq} ⬅`;
@@ -206,10 +238,14 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     setTimeout(() => {
+      if (runId !== currentRunId) {
+        if (el.parentNode) el.parentNode.removeChild(el);
+        return;
+      }
       el.style.opacity = '0';
       setTimeout(() => {
         if (el.parentNode) el.parentNode.removeChild(el);
-        if (onComplete) onComplete();
+        if (runId === currentRunId && onComplete) onComplete();
       }, 300);
     }, duration * 0.8);
   }
@@ -221,6 +257,7 @@ document.addEventListener('DOMContentLoaded', function () {
     timerId = null;
 
     btnStart.textContent = '▶ Start';
+    btnStart.disabled = false;
     statusBadge.textContent = 'Completed';
     statusBadge.className = 'sn-badge success';
     mState.textContent = 'COMPLETED';
@@ -243,8 +280,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /* ── 6. Event Handlers ──────────────────────────────────── */
+  /* ── 7. Event Handlers ──────────────────────────────────── */
   btnStart.addEventListener('click', function () {
+    if (!validateInputs()) return;
+
     if (base >= totalFrames) {
       initSimulation();
     }
@@ -278,6 +317,8 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   btnStep.addEventListener('click', function () {
+    if (!validateInputs()) return;
+
     if (base >= totalFrames) {
       initSimulation();
     }

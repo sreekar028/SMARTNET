@@ -185,6 +185,8 @@ code, pre { font-family: var(--font-mono); }
   align-items: center;
   gap: var(--space-sm);
   letter-spacing: -0.01em;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .sn-navbar .navbar-brand .brand-icon {
@@ -198,6 +200,35 @@ code, pre { font-family: var(--font-mono); }
   justify-content: center;
   font-size: 0.95rem;
   flex-shrink: 0;
+}
+
+.sn-navbar .brand-text-group {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sn-navbar .brand-title {
+  font-size: clamp(0.72rem, 3.2vw, 0.85rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.sn-navbar .brand-subtitle {
+  font-size: 0.62rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.sn-header-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
 }
 
 .sn-navbar .nav-link {
@@ -252,7 +283,17 @@ code, pre { font-family: var(--font-mono); }
 
 .sn-navbar .navbar-toggler {
   border-color: var(--border-color);
-  padding: 4px 8px;
+  background: var(--bg-surface);
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius-sm);
+  touch-action: manipulation;
 }
 
 .sn-navbar .navbar-toggler-icon {
@@ -267,6 +308,24 @@ code, pre { font-family: var(--font-mono); }
     border: 1px solid var(--border-color);
     margin-top: var(--space-sm);
     box-shadow: var(--shadow-md);
+    max-height: calc(100vh - 75px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+  }
+
+  .sn-navbar .nav-link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 10px 14px !important;
+  }
+
+  .sn-navbar .dropdown-item {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 10px 16px;
   }
 }
 
@@ -275,12 +334,14 @@ code, pre { font-family: var(--font-mono); }
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-sm);
-  width: 32px;
-  height: 32px;
+  min-width: 44px;
+  min-height: 44px;
+  width: 44px;
+  height: 44px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: 1.2rem;
   line-height: 1;
   cursor: pointer;
   padding: 0;
@@ -288,6 +349,7 @@ code, pre { font-family: var(--font-mono); }
   color: var(--text-primary);
   flex-shrink: 0;
   user-select: none;
+  touch-action: manipulation;
 }
 .sn-theme-toggle:hover {
   background: var(--bg-card-hover);

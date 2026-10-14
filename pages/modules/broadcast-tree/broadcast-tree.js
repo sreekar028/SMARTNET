@@ -517,7 +517,9 @@
 
   /* ── 11. Broadcast Packet Animation (Section 11) ─────────── */
   function startBroadcastAnimation() {
-    if (!state.treeResult || !state.treeResult.valid) {
+    const currentRoot = el.rootSelect ? el.rootSelect.value : state.rootNode;
+    const currentScenario = el.scenarioSelect ? el.scenarioSelect.value : state.scenario;
+    if (!state.treeResult || !state.treeResult.valid || state.rootNode !== currentRoot || state.scenario !== currentScenario) {
       buildTreeHandler();
       if (!state.treeResult || !state.treeResult.valid) return;
     }
@@ -654,6 +656,8 @@
     state.animTimeouts = [];
     const packetGroup = el.svg ? el.svg.querySelector('#svg-packets-group') : null;
     if (packetGroup) packetGroup.innerHTML = '';
+    if (el.btnBroadcast) el.btnBroadcast.disabled = false;
+    if (el.btnBuild) el.btnBuild.disabled = false;
   }
 
   /* ── 12. Handler: Build Broadcast Tree ────────────────────── */

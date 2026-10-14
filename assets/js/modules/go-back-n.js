@@ -54,8 +54,8 @@ document.addEventListener('DOMContentLoaded', function () {
   const mAcks      = document.getElementById('m-gbn-acks');
 
   /* ── 3. Simulation State ─────────────────────────────────── */
-  let totalFrames = parseInt(totalFramesIn.value, 10);
-  let windowSize  = parseInt(windowSizeIn.value, 10);
+  let totalFrames = parseInt(totalFramesIn.value, 10) || 10;
+  let windowSize  = parseInt(windowSizeIn.value, 10) || 4;
   let base        = 0;
   let nextSeqNum  = 0;
   let expectedSeq = 0;
@@ -74,9 +74,11 @@ document.addEventListener('DOMContentLoaded', function () {
   let timerId     = null;
   let timeoutTimer= null;
   let startTime   = null;
+  let currentRunId = 0; // Generation token to cancel stale animations on reset/re-run
 
   /* ── 4. Init & Render ───────────────────────────────────── */
   function initSimulation() {
+    currentRunId++;
     clearTimeout(timerId);
     clearTimeout(timeoutTimer);
     timerId = null;
@@ -86,8 +88,13 @@ document.addEventListener('DOMContentLoaded', function () {
     isPaused = false;
     startTime = Date.now();
 
-    totalFrames = parseInt(totalFramesIn.value, 10);
-    windowSize  = parseInt(windowSizeIn.value, 10);
+    totalFrames = Math.max(1, parseInt(totalFramesIn.value, 10) || 10);
+    const parsedWin = parseInt(windowSizeIn.value, 10) || 4;
+    windowSize = Math.max(1, Math.min(parsedWin, totalFrames));
+
+    valFramesEl.textContent = totalFrames;
+    valWindowEl.textContent = windowSize;
+
     base = 0;
     nextSeqNum = 0;
     expectedSeq = 0;
@@ -106,6 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     btnStart.textContent = '▶ Start GBN';
+    btnStart.disabled = false;
     statusBadge.textContent = 'Ready';
     statusBadge.className = 'sn-badge muted';
     timerLabelEl.textContent = 'Timer: Off';
@@ -167,6 +175,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ── 5. Protocol Engine ─────────────────────────────────── */
   function stepSimulation() {
+    const runId = currentRunId;
+
     if (base >= totalFrames) {
       completeSimulation();
       return;
@@ -197,12 +207,14 @@ document.addEventListener('DOMContentLoaded', function () {
         frames[seq].status = 'lost';
         logEvent(`⚡ <span class="text-danger">Channel Error: Frame #${seq} was DROPPED in transit!</span>`);
         animatePacket(seq, 'lost', speed, () => {
+          if (runId !== currentRunId) return;
           renderFrameTrack();
         });
       } else {
         // Frame arrives at receiver
         animatePacket(seq, 'frame', speed, () => {
-          handleFrameArrival(seq, speed, scenario);
+          if (runId !== currentRunId) return;
+          handleFrameArrival(seq, speed, scenario, runId);
         });
       }
 
@@ -210,7 +222,9 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!timeoutTimer) {
         timerLabelEl.textContent = 'Timer: Active';
         timeoutTimer = setTimeout(() => {
-          handleTimeout();
+          if (runId === currentRunId) {
+            handleTimeout(runId);
+          }
         }, speed * 2.8);
       }
 
@@ -218,11 +232,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (isRunning && !isPaused && base < totalFrames) {
-      timerId = setTimeout(stepSimulation, speed);
+      clearTimeout(timerId);
+      timerId = setTimeout(() => {
+        if (runId === currentRunId) {
+          stepSimulation();
+        }
+      }, speed);
     }
   }
 
-  function handleFrameArrival(seq, speed, scenario) {
+  function handleFrameArrival(seq, speed, scenario, runId) {
+    if (runId !== currentRunId) return;
+
     if (seq === expectedSeq) {
       // In-order frame received!
       expectedSeq++;
@@ -241,7 +262,8 @@ document.addEventListener('DOMContentLoaded', function () {
         cumulativeAckCount++;
         logEvent(`Receiver ⬅ Generating <strong>Cumulative ACK #${seq}</strong>`);
         animatePacket(seq, 'ack', speed, () => {
-          handleAckArrival(seq);
+          if (runId !== currentRunId) return;
+          handleAckArrival(seq, runId);
         });
       }
     } else {
@@ -261,7 +283,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  function handleAckArrival(ackSeq) {
+  function handleAckArrival(ackSeq, runId) {
+    if (runId !== currentRunId) return;
+
     logEvent(`Sender received <strong>Cumulative ACK #${ackSeq}</strong>.`);
     // Cumulative ACK acknowledges all frames up to ackSeq
     for (let i = base; i <= ackSeq; i++) {
@@ -277,7 +301,11 @@ document.addEventListener('DOMContentLoaded', function () {
     clearTimeout(timeoutTimer);
     if (base < nextSeqNum) {
       const speed = parseInt(speedSelect.value, 10);
-      timeoutTimer = setTimeout(handleTimeout, speed * 2.8);
+      timeoutTimer = setTimeout(() => {
+        if (runId === currentRunId) {
+          handleTimeout(runId);
+        }
+      }, speed * 2.8);
       timerLabelEl.textContent = 'Timer: Active';
     } else {
       timeoutTimer = null;
@@ -289,7 +317,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  function handleTimeout() {
+  function handleTimeout(runId) {
+    if (runId !== currentRunId) return;
+
     timeoutTimer = null;
     timerLabelEl.textContent = 'Timer: EXPIRED!';
     logEvent(`⏱️ <span class="text-warning"><strong>TIMEOUT EXPIRED!</strong> No ACK received for Frame #${base}.</span>`);
@@ -309,11 +339,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (isRunning && !isPaused) {
       const speed = parseInt(speedSelect.value, 10);
-      timerId = setTimeout(stepSimulation, speed);
+      clearTimeout(timerId);
+      timerId = setTimeout(() => {
+        if (runId === currentRunId) {
+          stepSimulation();
+        }
+      }, speed);
     }
   }
 
   function animatePacket(seq, type, duration, onComplete) {
+    const runId = currentRunId;
     const el = document.createElement('div');
     el.className = 'gbn-transit-item';
 
@@ -341,6 +377,10 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     setTimeout(() => {
+      if (runId !== currentRunId) {
+        if (el.parentNode) el.parentNode.removeChild(el);
+        return;
+      }
       if (type === 'lost') {
         el.style.transform = 'scale(1.4)';
         el.style.opacity = '0';
@@ -349,7 +389,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
       setTimeout(() => {
         if (el.parentNode) el.parentNode.removeChild(el);
-        if (onComplete) onComplete();
+        if (runId === currentRunId && onComplete) onComplete();
       }, 300);
     }, duration * 0.8);
   }
@@ -363,6 +403,7 @@ document.addEventListener('DOMContentLoaded', function () {
     timeoutTimer = null;
 
     btnStart.textContent = '▶ Start GBN';
+    btnStart.disabled = false;
     statusBadge.textContent = 'Completed';
     statusBadge.className = 'sn-badge success';
     timerLabelEl.textContent = 'Timer: Off';

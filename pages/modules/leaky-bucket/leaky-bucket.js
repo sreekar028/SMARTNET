@@ -319,6 +319,10 @@
     // Sequence input
     el.customSeqInput.addEventListener('input', function () {
       validateInputs();
+      if (!state.isRunning) {
+        state.sequenceIdx = 0;
+        state.drainingMode = false;
+      }
     });
 
     // Speed dropdown
@@ -339,6 +343,10 @@
         const seq = state.presetSequences[pKey] || state.presetSequences.default;
         el.customSeqInput.value = seq.join(', ');
         validateInputs();
+        if (!state.isRunning) {
+          state.sequenceIdx = 0;
+          state.drainingMode = false;
+        }
       });
     });
 
@@ -528,7 +536,8 @@
     }
 
     // If starting run when previous sequence already fully finished and drained, reset sequence & counters
-    if (state.sequenceIdx >= state.activeSequence.length && state.currentLevel === 0) {
+    const hasFinished = (state.sequenceIdx >= state.activeSequence.length && state.currentLevel === 0) || (state.drainingMode && state.currentLevel === 0);
+    if (hasFinished) {
       state.timeStep = 0;
       state.sequenceIdx = 0;
       state.drainingMode = false;
@@ -544,6 +553,7 @@
 
     state.isRunning = true;
     el.btnPlay.innerHTML = '⏸️ Pause';
+    el.btnPlay.disabled = false;
     el.btnPlay.classList.remove('btn-primary-sn');
     el.btnPlay.classList.add('btn-secondary-sn');
     updateResultsSection('Running...');
@@ -558,6 +568,7 @@
       state.timer = null;
     }
     el.btnPlay.innerHTML = '▶️ Run Simulation';
+    el.btnPlay.disabled = false;
     el.btnPlay.classList.add('btn-primary-sn');
     el.btnPlay.classList.remove('btn-secondary-sn');
 

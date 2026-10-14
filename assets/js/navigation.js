@@ -143,27 +143,36 @@ SMARTNET.Navigation = (function () {
 
     return `
 <nav class="navbar navbar-expand-lg sn-navbar" id="sn-main-nav" aria-label="Main navigation">
-  <div class="container-fluid px-3 px-lg-4">
+  <div class="container-fluid px-2 px-sm-3 px-lg-4">
 
     <!-- Brand -->
-    <a class="navbar-brand" href="${r('dashboard')}" id="nav-brand">
+    <a class="navbar-brand me-2" href="${r('dashboard')}" id="nav-brand">
       <div class="brand-icon" aria-hidden="true">🌐</div>
-      <div>
-        <div style="font-size:0.78rem;font-weight:800;letter-spacing:-0.01em;line-height:1;">SMARTNET</div>
-        <div style="font-size:0.62rem;font-weight:400;color:var(--text-muted);line-height:1.2;">Network Analyzer</div>
+      <div class="brand-text-group">
+        <div class="brand-title">SMARTNET</div>
+        <div class="brand-subtitle">Network Analyzer</div>
       </div>
     </a>
 
-    <!-- Toggler -->
-    <button class="navbar-toggler" type="button"
-            data-bs-toggle="collapse" data-bs-target="#snNavCollapse"
-            aria-controls="snNavCollapse" aria-expanded="false"
-            aria-label="Toggle navigation" id="nav-toggler">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+    <!-- Right-side Action Group: Status + Theme Toggle + Mobile Toggler -->
+    <div class="sn-header-actions d-flex align-items-center gap-1 gap-sm-2 ms-auto order-lg-last">
+      <span class="sn-badge success py-1 px-2 d-flex align-items-center gap-1" id="nav-system-status" title="System Online">
+        <span class="status-dot"></span>
+        <span class="d-none d-sm-inline">System Online</span>
+      </span>
+      <button class="sn-theme-toggle" id="sn-theme-toggle" type="button"
+              aria-label="${SMARTNET.Theme && SMARTNET.Theme.getTheme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}"
+              title="${SMARTNET.Theme && SMARTNET.Theme.getTheme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}">${SMARTNET.Theme && SMARTNET.Theme.getTheme() === 'dark' ? '☀️' : '🌙'}</button>
+      <button class="navbar-toggler" type="button"
+              data-bs-toggle="collapse" data-bs-target="#snNavCollapse"
+              aria-controls="snNavCollapse" aria-expanded="false"
+              aria-label="Toggle navigation" id="nav-toggler">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
 
-    <!-- Links -->
-    <div class="collapse navbar-collapse" id="snNavCollapse">
+    <!-- Navigation Links Collapse -->
+    <div class="collapse navbar-collapse order-lg-2" id="snNavCollapse">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3 gap-1">
 
         <!-- Dashboard -->
@@ -241,16 +250,6 @@ SMARTNET.Navigation = (function () {
         </li>
 
       </ul>
-
-      <!-- Right side status -->
-      <div class="d-flex align-items-center gap-2">
-        <span class="sn-badge success">
-          <span class="status-dot"></span> System Online
-        </span>
-        <button class="sn-theme-toggle" id="sn-theme-toggle" type="button"
-                aria-label="${SMARTNET.Theme && SMARTNET.Theme.getTheme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}"
-                title="${SMARTNET.Theme && SMARTNET.Theme.getTheme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}">${SMARTNET.Theme && SMARTNET.Theme.getTheme() === 'dark' ? '☀️' : '🌙'}</button>
-      </div>
     </div>
   </div>
 </nav>`;
@@ -285,10 +284,65 @@ SMARTNET.Navigation = (function () {
     container.innerHTML = buildNavHTML(root);
     setActiveLink();
 
+    const toggler = container.querySelector('#nav-toggler');
+    const collapse = container.querySelector('#snNavCollapse');
+
+    function closeMobileNav() {
+      if (collapse && collapse.classList.contains('show')) {
+        collapse.classList.remove('show');
+        if (toggler) {
+          toggler.setAttribute('aria-expanded', 'false');
+          toggler.classList.add('collapsed');
+        }
+      }
+    }
+
+    function toggleMobileNav() {
+      if (!collapse) return;
+      const isOpen = collapse.classList.contains('show');
+      if (isOpen) {
+        closeMobileNav();
+      } else {
+        collapse.classList.add('show');
+        if (toggler) {
+          toggler.setAttribute('aria-expanded', 'true');
+          toggler.classList.remove('collapsed');
+        }
+      }
+    }
+
+    // Explicit hamburger toggler handler for rock-solid mobile menu operation
+    if (toggler && collapse) {
+      toggler.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        toggleMobileNav();
+      });
+
+      // Auto-close menu when clicking any nav link or dropdown item on mobile
+      collapse.querySelectorAll('.nav-link:not(.dropdown-toggle), .dropdown-item').forEach(link => {
+        link.addEventListener('click', function () {
+          if (window.innerWidth < 992) {
+            closeMobileNav();
+          }
+        });
+      });
+
+      // Auto-close menu when clicking outside on mobile
+      document.addEventListener('click', function (e) {
+        if (window.innerWidth < 992 && collapse.classList.contains('show')) {
+          if (!collapse.contains(e.target) && !toggler.contains(e.target)) {
+            closeMobileNav();
+          }
+        }
+      });
+    }
+
     // Ensure dropdowns toggle reliably across environments
     container.querySelectorAll('.dropdown-toggle').forEach(toggle => {
       toggle.addEventListener('click', function (e) {
         e.preventDefault();
+        e.stopPropagation();
         const menu = this.nextElementSibling;
         if (menu && menu.classList.contains('dropdown-menu')) {
           const isOpen = menu.classList.contains('show');
@@ -334,6 +388,7 @@ SMARTNET.Navigation = (function () {
     if (themeBtn) {
       themeBtn.addEventListener('click', function (e) {
         e.preventDefault();
+        e.stopPropagation();
         if (SMARTNET.Theme) {
           SMARTNET.Theme.toggle();
         }

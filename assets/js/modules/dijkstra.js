@@ -307,13 +307,20 @@ document.addEventListener('DOMContentLoaded', async function () {
     const dest = destSelect.value;
 
     if (src === dest) {
-      alert('Source and destination cannot be the same node.');
+      resultCard.style.display = 'block';
+      pathDisplay.textContent = 'Source and destination cannot be the same node.';
+      costDisplay.textContent = '0';
+      statusBadge.textContent = 'Invalid Nodes';
+      statusBadge.className = 'sn-badge danger';
+      stepTbody.innerHTML = `<tr><td colspan="4" class="text-danger text-center py-3">⚠️ Source and destination nodes cannot be identical. Please select two different network nodes.</td></tr>`;
+      renderGraph();
       return;
     }
 
     const result = computeDijkstra(src, dest);
     steps = result.steps;
     finalPathEdges = result.pathEdges;
+    currentStepIdx = -1;
 
     // Display Result Banner
     resultCard.style.display = 'block';
@@ -370,9 +377,15 @@ document.addEventListener('DOMContentLoaded', async function () {
   }
 
   function stepThrough() {
+    const src  = sourceSelect.value;
+    const dest = destSelect.value;
+
+    if (src === dest) {
+      runFullAlgorithm();
+      return;
+    }
+
     if (steps.length === 0 || currentStepIdx >= steps.length - 1) {
-      const src  = sourceSelect.value;
-      const dest = destSelect.value;
       const res = computeDijkstra(src, dest);
       steps = res.steps;
       finalPathEdges = res.pathEdges;
