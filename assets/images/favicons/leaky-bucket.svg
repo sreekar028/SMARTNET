@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#g)"/>
+  <!-- Bucket / Funnel Container -->
+  <path d="M 8.5 8 L 23.5 8 L 21.2 20.5 L 10.8 20.5 Z" fill="none" stroke="#ffffff" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Water in Bucket -->
+  <path d="M 9.8 13 L 22.2 13 L 20.8 19.5 L 11.2 19.5 Z" fill="#86efac"/>
+  <!-- Falling Water Droplets -->
+  <path d="M 16 22.5 C 14.8 24.5, 14.8 26.5, 16 27.5 C 17.2 26.5, 17.2 24.5, 16 22.5 Z" fill="#ffffff"/>
+</svg>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#g)"/>
+  <!-- Branching Tree Edges -->
+  <line x1="16" y1="7.5" x2="10.5" y2="16.5" stroke="#dcfce7" stroke-width="1.8"/>
+  <line x1="16" y1="7.5" x2="21.5" y2="16.5" stroke="#dcfce7" stroke-width="1.8"/>
+  <line x1="10.5" y1="16.5" x2="6.5" y2="24.5" stroke="#dcfce7" stroke-width="1.6"/>
+  <line x1="10.5" y1="16.5" x2="14.5" y2="24.5" stroke="#dcfce7" stroke-width="1.6"/>
+  <line x1="21.5" y1="16.5" x2="25.5" y2="24.5" stroke="#dcfce7" stroke-width="1.6"/>
+  <!-- Root Router (Top) -->
+  <circle cx="16" cy="7.5" r="3.4" fill="#ffffff"/>
+  <circle cx="16" cy="7.5" r="1.5" fill="#16a34a"/>
+  <!-- Intermediate Routers -->
+  <circle cx="10.5" cy="16.5" r="2.6" fill="#ffffff"/>
+  <circle cx="21.5" cy="16.5" r="2.6" fill="#ffffff"/>
+  <!-- Leaf Nodes (Bottom) -->
+  <circle cx="6.5" cy="24.5" r="2.2" fill="#86efac"/>
+  <circle cx="14.5" cy="24.5" r="2.2" fill="#86efac"/>
+  <circle cx="25.5" cy="24.5" r="2.2" fill="#86efac"/>
+</svg>

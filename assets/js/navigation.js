@@ -274,17 +274,31 @@ SMARTNET.Navigation = (function () {
 
   function ensureFavicon(root) {
     if (!document.querySelector('link[rel*="icon"]')) {
+      const pageKey = (document.body && document.body.dataset && document.body.dataset.page) || 'dashboard';
+      const pageToFavicon = {
+        dashboard: 'dashboard.svg',
+        topology: 'topology.svg',
+        framing: 'framing.svg',
+        crc: 'crc.svg',
+        slidingWindow: 'sliding-window.svg',
+        goBackN: 'go-back-n.svg',
+        dijkstra: 'dijkstra.svg',
+        distanceVector: 'distance-vector.svg',
+        broadcastTree: 'broadcast-tree.svg',
+        encryption: 'encryption.svg',
+        leakyBucket: 'leaky-bucket.svg',
+        wireshark: 'wireshark.svg',
+        nmap: 'nmap.svg',
+        ns2: 'ns2.svg',
+        results: 'results.svg',
+        about: 'about.svg'
+      };
+      const iconFile = pageToFavicon[pageKey] || 'dashboard.svg';
       const svgIcon = document.createElement('link');
       svgIcon.rel = 'icon';
       svgIcon.type = 'image/svg+xml';
-      svgIcon.href = root + 'assets/images/favicon.svg';
+      svgIcon.href = root + 'assets/images/favicons/' + iconFile;
       document.head.appendChild(svgIcon);
-
-      const altIcon = document.createElement('link');
-      altIcon.rel = 'alternate icon';
-      altIcon.type = 'image/png';
-      altIcon.href = root + 'assets/images/favicon.png';
-      document.head.appendChild(altIcon);
     }
   }
 

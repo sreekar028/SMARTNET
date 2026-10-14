@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#g)"/>
+  <!-- Coordinate Axes -->
+  <polyline points="7,7.5 7,24.5 25.5,24.5" fill="none" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Simulation Trace Waveform -->
+  <polyline points="7,20.5 11.5,15 15.5,19 19.5,10 24.5,14" fill="none" stroke="#86efac" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Trace Measurement Points -->
+  <circle cx="11.5" cy="15" r="1.6" fill="#ffffff"/>
+  <circle cx="15.5" cy="19" r="1.6" fill="#ffffff"/>
+  <circle cx="19.5" cy="10" r="2" fill="#ffffff"/>
+  <circle cx="24.5" cy="14" r="1.6" fill="#ffffff"/>
+</svg>

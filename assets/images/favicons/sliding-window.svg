@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a"/>
+      <stop offset="100%" stop-color="#15803d"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="7" fill="url(#g)"/>
+  <!-- Sliding Direction Arrow -->
+  <path d="M 13 6 L 19 6 M 17 4 L 19.5 6 L 17 8" fill="none" stroke="#86efac" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Frame sequence slots -->
+  <rect x="5" y="13" width="3.5" height="9" rx="1" fill="#ffffff" fill-opacity="0.35"/>
+  <rect x="10" y="13" width="3.5" height="9" rx="1" fill="#ffffff"/>
+  <rect x="15" y="13" width="3.5" height="9" rx="1" fill="#ffffff"/>
+  <rect x="20" y="13" width="3.5" height="9" rx="1" fill="#86efac"/>
+  <rect x="25" y="13" width="3.5" height="9" rx="1" fill="#ffffff" fill-opacity="0.35"/>
+  <!-- Active Window Enclosure Box -->
+  <rect x="8.5" y="10.5" width="16" height="14" rx="2" fill="none" stroke="#ffffff" stroke-width="2"/>
+</svg>
