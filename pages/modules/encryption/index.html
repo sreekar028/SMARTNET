@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Encryption Simulation — Interactive cryptographic demonstration comparing historical educational ciphers (Caesar) with modern authenticated symmetric encryption (AES-GCM)." />
+  <meta name="theme-color" content="#15803d" />
+  <script>(function(){try{var t=localStorage.getItem('smartnet_theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();</script>
+  <title>Encryption Simulation — SMARTNET</title>
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        crossorigin="anonymous" />
+
+  <!-- SMARTNET Global Stylesheet -->
+  <link rel="stylesheet" href="../../../assets/css/style.css" />
+
+  <!-- Scoped Module Styles -->
+  <style>
+    .enc-container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .algo-pill-container {
+      display: flex;
+      gap: 10px;
+      background: var(--bg-surface);
+      padding: 6px;
+      border-radius: var(--border-radius);
+      border: 1px solid var(--border-color);
+      margin-bottom: var(--space-lg);
+    }
+    .enc-algo-tab {
+      flex: 1;
+      padding: 10px 16px;
+      border-radius: var(--border-radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      text-align: center;
+      transition: var(--transition-fast);
+      border: none;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .enc-algo-tab:hover {
+      color: var(--text-primary);
+      background: rgba(79, 142, 247, 0.08);
+    }
+    .enc-algo-tab.active {
+      color: var(--text-primary);
+      background: var(--bg-card);
+      box-shadow: var(--shadow-sm);
+      border: 1px solid var(--border-color);
+    }
+    .enc-algo-tab.active .badge-tag {
+      background: var(--color-primary);
+      color: #fff;
+    }
+    .crypto-alert {
+      border-left: 4px solid var(--color-warning);
+      background: rgba(245, 158, 11, 0.08);
+      border-radius: var(--border-radius-sm);
+      padding: 12px 16px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-md);
+    }
+    .crypto-alert.secure {
+      border-left-color: var(--color-accent);
+      background: rgba(6, 214, 160, 0.08);
+    }
+    .cipher-output-box {
+      font-family: var(--font-mono);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: var(--space-md);
+      font-size: 0.9rem;
+      word-break: break-all;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+    }
+    .mode-subtab {
+      cursor: pointer;
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: var(--border-radius-sm);
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface);
+      color: var(--text-muted);
+      transition: var(--transition-fast);
+    }
+    .mode-subtab.active {
+      background: var(--color-primary);
+      color: #fff;
+      border-color: var(--color-primary);
+    }
+  </style>
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="../../../assets/images/favicons/encryption.svg" />
+</head>
+
+<body data-page="encryption">
+
+  <!-- NAVIGATION — Injected by navigation.js -->
+  <div id="sn-nav-container"></div>
+
+  <!-- HEADER -->
+  <header class="section-gap-sm" style="background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-base) 100%); position: relative; overflow: hidden;">
+    <div class="container enc-container">
+      <div class="animate-fade-in-up">
+        <a href="../../dashboard.html" class="btn-secondary-sn" style="padding:6px 14px;font-size:0.78rem;margin-bottom:var(--space-md);display:inline-flex;" id="btn-back-dashboard">
+          ← Back to Dashboard
+        </a>
+        <div class="d-flex align-items-center gap-3 mb-2">
+          <div class="sn-card-icon red" style="width:52px;height:52px;font-size:1.4rem;">🔒</div>
+          <div>
+            <h1 style="font-size:clamp(1.4rem,3vw,2rem);margin:0;" id="page-title">Encryption &amp; Security Simulation</h1>
+            <p style="margin:4px 0 0;font-size:0.88rem;color:var(--text-secondary);">Cryptographic Transformation · Classical Caesar vs Modern Authenticated AES-GCM</p>
+          </div>
+        </div>
+        <p style="max-width:850px;font-size:0.92rem;line-height:1.6;color:var(--text-secondary);margin-bottom:0;">
+          Explore how plaintext is mathematically and cryptographically mapped into ciphertext. Contrast the
+          <strong>historical educational Caesar Cipher</strong> (vulnerable to frequency analysis and brute-force) with
+          <strong>industry-standard AES-256-GCM</strong> featuring fresh nonces and 128-bit authentication tags for tamper detection.
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT -->
+  <main class="container enc-container my-4">
+
+    <!-- Algorithm Selector Tabs -->
+    <div class="algo-pill-container" role="tablist" aria-label="Cryptographic Algorithms">
+      <button class="enc-algo-tab active" data-algo="caesar" id="tab-algo-caesar" role="tab" aria-selected="true" aria-controls="panel-caesar">
+        <span>📜</span>
+        <span>Caesar Cipher</span>
+        <span class="badge bg-secondary badge-tag" style="font-size:0.65rem;">Educational</span>
+      </button>
+      <button class="enc-algo-tab" data-algo="aes" id="tab-algo-aes" role="tab" aria-selected="false" aria-controls="panel-aes">
+        <span>🛡️</span>
+        <span>AES-GCM (Authenticated)</span>
+        <span class="badge bg-success badge-tag" style="font-size:0.65rem;">Modern Standard</span>
+      </button>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════
+         PANEL 1: CAESAR CIPHER (EDUCATIONAL)
+    ════════════════════════════════════════════════════ -->
+    <section id="panel-caesar" class="animate-fade-in-up" role="tabpanel" aria-labelledby="tab-algo-caesar">
+      <div class="crypto-alert">
+        <strong>⚠️ Educational Classical Cipher Notice:</strong> The Caesar Cipher is demonstrated for historical and mathematical pedagogy.
+        With only 25 possible shifts, it provides <em>no modern cryptographic security</em> and can be broken instantly via brute-force or letter frequency analysis.
+      </div>
+
+      <div class="row g-4">
+        <!-- Input Form -->
+        <div class="col-lg-5">
+          <div class="sn-card h-100">
+            <h2 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
+              <span>✍️</span> Input Parameters
+            </h2>
+
+            <div class="mb-3">
+              <label for="caesar-plaintext" class="form-label small fw-bold text-muted">Message (Plaintext / Ciphertext):</label>
+              <textarea class="form-control font-monospace" id="caesar-plaintext" rows="4" placeholder="Enter message to encrypt or decrypt... e.g., ATTACK AT DAWN"></textarea>
+            </div>
+
+            <div class="mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="caesar-shift" class="form-label small fw-bold text-muted mb-0">Shift Key (k):</label>
+                <span class="badge bg-primary font-monospace fs-6" id="caesar-shift-val">3</span>
+              </div>
+              <input type="range" class="form-range" id="caesar-shift" min="1" max="25" value="3" />
+              <div class="d-flex justify-content-between text-muted" style="font-size:0.7rem;">
+                <span>1 (A➔B)</span>
+                <span>13 (ROT13)</span>
+                <span>25 (A➔Z)</span>
+              </div>
+            </div>
+
+            <div class="alert alert-danger p-2 small" id="caesar-error" style="display:none;"></div>
+
+            <div class="d-flex flex-wrap gap-2">
+              <button class="btn btn-primary" id="btn-caesar-encrypt" style="flex:1;">
+                🔒 Encrypt (E = x + k)
+              </button>
+              <button class="btn btn-secondary" id="btn-caesar-decrypt" style="flex:1;">
+                🔓 Decrypt (D = x - k)
+              </button>
+              <button class="btn btn-outline-danger" id="btn-caesar-reset" title="Clear Inputs">
+                ↺ Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Output & Visualization -->
+        <div class="col-lg-7">
+          <div class="sn-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h2 class="h5 fw-bold mb-0 d-flex align-items-center gap-2">
+                <span>📊</span> Transformation Output &amp; Analysis
+              </h2>
+              <button class="btn btn-sm btn-outline-secondary" id="btn-caesar-copy">
+                📋 Copy Result
+              </button>
+            </div>
+
+            <div id="caesar-output-section" style="display:none;">
+              <div class="mb-3">
+                <label class="form-label small fw-bold text-muted">Resulting Text:</label>
+                <div class="cipher-output-box" id="caesar-ciphertext-output"></div>
+              </div>
+
+              <!-- Mathematical Breakdown -->
+              <div class="mb-2">
+                <div class="small fw-bold text-muted mb-2">Character-by-Character Transformation:</div>
+                <div id="caesar-steps-container" style="max-height: 280px; overflow-y: auto;"></div>
+              </div>
+            </div>
+
+            <!-- Empty state when no operation has occurred -->
+            <div id="caesar-empty-placeholder" class="text-center py-5 text-muted">
+              <div style="font-size:2.5rem;margin-bottom:8px;">📜</div>
+              <p class="mb-1 fw-bold">No Transformation Run Yet</p>
+              <p class="small">Enter a text message on the left and click Encrypt or Decrypt to visualize the character mapping.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════
+         PANEL 2: AES-GCM (AUTHENTICATED MODERN CIPHER)
+    ════════════════════════════════════════════════════ -->
+    <section id="panel-aes" style="display:none;" class="animate-fade-in-up" role="tabpanel" aria-labelledby="tab-algo-aes">
+      <div class="crypto-alert secure">
+        <strong>🛡️ Industry Standard AES-GCM (Authenticated Encryption):</strong> Uses the browser's hardware-accelerated
+        <strong>Web Crypto API</strong>. Each encryption automatically generates a cryptographically secure <strong>fresh 96-bit Nonce (IV)</strong> and computes a
+        <strong>128-bit Galois Authentication Tag</strong>, assuring both confidentiality and tamper-proof data integrity.
+      </div>
+
+      <!-- Mode Selector (Encrypt vs Decrypt) -->
+      <div class="d-flex gap-2 mb-3">
+        <button class="mode-subtab active" id="aes-mode-encrypt">🔒 Encryption Mode</button>
+        <button class="mode-subtab" id="aes-mode-decrypt">🔓 Decryption Mode</button>
+      </div>
+
+      <div class="row g-4">
+        <!-- Left: Inputs -->
+        <div class="col-lg-5">
+          <div class="sn-card h-100">
+            <h2 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
+              <span>⚙️</span> AES-GCM Configuration
+            </h2>
+
+            <!-- Key Length -->
+            <div class="mb-3">
+              <label for="aes-key-length" class="form-label small fw-bold text-muted">Cipher Key Length:</label>
+              <select class="form-select font-monospace small" id="aes-key-length">
+                <option value="256" selected>AES-256-GCM (Top Secret / Military Grade)</option>
+                <option value="128">AES-128-GCM (Standard Enterprise Grade)</option>
+              </select>
+            </div>
+
+            <!-- Encrypt Controls -->
+            <div id="aes-encrypt-controls">
+              <div class="mb-3">
+                <label for="aes-passphrase" class="form-label small fw-bold text-muted">Secret Passphrase / Key:</label>
+                <input type="password" class="form-control font-monospace" id="aes-passphrase" placeholder="Enter secret passphrase (e.g. SmartNet@2026-Secure)" autocomplete="new-password" />
+                <div class="form-text" style="font-size:0.72rem;color:var(--text-muted);">
+                  Derived using PBKDF2 (100,000 rounds SHA-256) + CSPRNG Salt. Keys are never logged or stored.
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="aes-plaintext" class="form-label small fw-bold text-muted">Plaintext Message to Protect:</label>
+                <textarea class="form-control font-monospace" id="aes-plaintext" rows="4" placeholder="Enter confidential packet payload or message..."></textarea>
+              </div>
+
+              <button class="btn btn-primary w-100" id="btn-aes-encrypt">
+                🔒 Encrypt Message (AES-GCM)
+              </button>
+            </div>
+
+            <!-- Decrypt Controls -->
+            <div id="aes-decrypt-controls" style="display:none;">
+              <div class="mb-3">
+                <label for="aes-passphrase-dec" class="form-label small fw-bold text-muted">Secret Passphrase:</label>
+                <input type="password" class="form-control font-monospace" id="aes-passphrase-dec" placeholder="Enter the exact passphrase used to encrypt" autocomplete="current-password" />
+              </div>
+
+              <div class="mb-3">
+                <label for="aes-ciphertext-input" class="form-label small fw-bold text-muted">Encrypted AES Package (JSON):</label>
+                <textarea class="form-control font-monospace small" id="aes-ciphertext-input" rows="5" placeholder='Paste JSON package: {"v":1,"alg":"AES-GCM","saltHex":...,"nonceHex":...,"ciphertextHex":...,"authTagHex":...}'></textarea>
+              </div>
+
+              <div class="d-flex gap-2">
+                <button class="btn btn-success flex-grow-1" id="btn-aes-decrypt">
+                  🔓 Decrypt &amp; Verify Authenticity
+                </button>
+                <button class="btn btn-outline-warning" id="btn-aes-tamper-test" title="Simulate bit tampering to verify authentication tag protection">
+                  ⚡ Tamper Test
+                </button>
+              </div>
+            </div>
+
+            <div class="alert alert-danger p-2 small mt-3" id="aes-error" style="display:none;"></div>
+
+            <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center">
+              <span class="small text-muted">Reset all fields</span>
+              <button class="btn btn-sm btn-outline-danger" id="btn-aes-reset">↺ Clear All</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Cryptographic Findings & Visualization -->
+        <div class="col-lg-7">
+          <div class="sn-card h-100">
+            <h2 class="h5 fw-bold mb-3 d-flex align-items-center gap-2">
+              <span>🔍</span> Cryptographic Results &amp; Verification
+            </h2>
+
+            <div id="aes-output-section" style="display:none;">
+              <div id="aes-result-card"></div>
+            </div>
+
+            <div id="aes-empty-placeholder" class="text-center py-5 text-muted">
+              <div style="font-size:2.5rem;margin-bottom:8px;">🛡️</div>
+              <p class="mb-1 fw-bold">AES-GCM Engine Ready</p>
+              <p class="small">Configure key length, passphrase, and message to generate an authenticated ciphertext bundle.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="sn-footer">
+    <div class="container enc-container">
+      <div class="footer-bottom">
+        <p>© 2024–2026 SMARTNET — Network Performance Analyzer &amp; Security Testing System</p>
+        <p style="color:var(--text-muted);">Member 5: Encryption Simulation Module · Zero Key Storage Safeguard</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 Bundle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+  <!-- SMARTNET Shared Layers -->
+  <script src="../../../assets/js/navigation.js"></script>
+  <script src="../../../assets/js/integration.js"></script>
+
+  <!-- Module Script -->
+  <script src="../../../assets/js/modules/encryption.js"></script>
+
+</body>
+</html>
