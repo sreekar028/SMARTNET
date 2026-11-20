@@ -196,23 +196,27 @@
               <h3 style="font-size:1rem;margin:0;color:var(--text-primary);">GBN Parameters</h3>
             </div>
 
+            <!-- Validation Alert -->
+            <div class="alert alert-danger py-2 px-3 mb-3 d-none" id="gbn-validation-alert" role="alert" style="font-size:0.8rem;"></div>
+
             <!-- Total Frames -->
             <div class="mb-3">
-              <div class="d-flex justify-content-between">
-                <label for="gbn-total-frames" class="form-label" style="font-size:0.8rem;">Total Frames</label>
-                <span class="text-primary fw-bold" id="gbn-val-frames">10</span>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="gbn-total-frames" class="form-label mb-0" style="font-size:0.8rem;">Total Frames</label>
+                <span class="badge bg-light text-primary border font-monospace" id="gbn-val-frames" style="font-size:0.75rem;">10</span>
               </div>
-              <input type="range" class="form-range" id="gbn-total-frames" min="5" max="15" value="10" />
+              <input type="number" class="form-control form-control-sm font-monospace" id="gbn-total-frames" min="5" max="15" value="10" step="1" placeholder="10" />
+              <div class="form-text" style="font-size:0.72rem;color:var(--text-muted);">Frame count (5 to 15)</div>
             </div>
 
             <!-- Window Size N -->
             <div class="mb-3">
-              <div class="d-flex justify-content-between">
-                <label for="gbn-window-size" class="form-label" style="font-size:0.8rem;">Window Size (N)</label>
-                <span class="text-primary fw-bold" id="gbn-val-window">4</span>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="gbn-window-size" class="form-label mb-0" style="font-size:0.8rem;">Window Size (N)</label>
+                <span class="badge bg-light text-primary border font-monospace" id="gbn-val-window" style="font-size:0.75rem;">4</span>
               </div>
-              <input type="range" class="form-range" id="gbn-window-size" min="2" max="6" value="4" />
-              <div class="form-text" style="font-size:0.72rem;color:var(--text-muted);">Max outstanding frames</div>
+              <input type="number" class="form-control form-control-sm font-monospace" id="gbn-window-size" min="2" max="6" value="4" step="1" placeholder="4" />
+              <div class="form-text" style="font-size:0.72rem;color:var(--text-muted);">Max outstanding frames (2 to 6, ≤ Total Frames)</div>
             </div>
 
             <!-- Error Injection Scenario -->

@@ -271,50 +271,62 @@
   /* ── 6. Parameter Updates & Listeners ─────────────────────── */
   function attachEventListeners() {
     // Bucket Capacity sync
-    el.capInput.addEventListener('input', function () {
-      const val = parseInt(this.value, 10);
-      if (!isNaN(val) && val > 0) {
-        el.capRange.value = Math.min(30, Math.max(1, val));
-        el.capVal.textContent = val;
-        state.capacity = val;
+    if (el.capInput) {
+      const handleCapInput = function () {
+        const val = parseInt(this.value, 10);
+        if (!isNaN(val) && val > 0) {
+          if (el.capRange) el.capRange.value = Math.min(30, Math.max(1, val));
+          if (el.capVal) el.capVal.textContent = val;
+          state.capacity = val;
+          updateBucketMarkings();
+          renderBucketVisual();
+          updateResultsSection();
+        }
+        validateInputs();
+      };
+      el.capInput.addEventListener('input', handleCapInput);
+      el.capInput.addEventListener('change', handleCapInput);
+    }
+
+    if (el.capRange) {
+      el.capRange.addEventListener('input', function () {
+        if (el.capInput) el.capInput.value = this.value;
+        if (el.capVal) el.capVal.textContent = this.value;
+        state.capacity = parseInt(this.value, 10);
+        validateInputs();
         updateBucketMarkings();
         renderBucketVisual();
         updateResultsSection();
-      }
-      validateInputs();
-    });
-
-    el.capRange.addEventListener('input', function () {
-      el.capInput.value = this.value;
-      el.capVal.textContent = this.value;
-      state.capacity = parseInt(this.value, 10);
-      validateInputs();
-      updateBucketMarkings();
-      renderBucketVisual();
-      updateResultsSection();
-    });
+      });
+    }
 
     // Output Rate sync
-    el.rateInput.addEventListener('input', function () {
-      const val = parseInt(this.value, 10);
-      if (!isNaN(val) && val > 0) {
-        el.rateRange.value = Math.min(15, Math.max(1, val));
-        el.rateVal.textContent = val;
-        state.leakRate = val;
-        if (el.outflowCaption) el.outflowCaption.textContent = `Output Rate = ${val} pkts/tick`;
-        updateResultsSection();
-      }
-      validateInputs();
-    });
+    if (el.rateInput) {
+      const handleRateInput = function () {
+        const val = parseInt(this.value, 10);
+        if (!isNaN(val) && val > 0) {
+          if (el.rateRange) el.rateRange.value = Math.min(15, Math.max(1, val));
+          if (el.rateVal) el.rateVal.textContent = val;
+          state.leakRate = val;
+          if (el.outflowCaption) el.outflowCaption.textContent = `Output Rate = ${val} pkts/tick`;
+          updateResultsSection();
+        }
+        validateInputs();
+      };
+      el.rateInput.addEventListener('input', handleRateInput);
+      el.rateInput.addEventListener('change', handleRateInput);
+    }
 
-    el.rateRange.addEventListener('input', function () {
-      el.rateInput.value = this.value;
-      el.rateVal.textContent = this.value;
-      state.leakRate = parseInt(this.value, 10);
-      if (el.outflowCaption) el.outflowCaption.textContent = `Output Rate = ${this.value} pkts/tick`;
-      validateInputs();
-      updateResultsSection();
-    });
+    if (el.rateRange) {
+      el.rateRange.addEventListener('input', function () {
+        if (el.rateInput) el.rateInput.value = this.value;
+        if (el.rateVal) el.rateVal.textContent = this.value;
+        state.leakRate = parseInt(this.value, 10);
+        if (el.outflowCaption) el.outflowCaption.textContent = `Output Rate = ${this.value} pkts/tick`;
+        validateInputs();
+        updateResultsSection();
+      });
+    }
 
     // Sequence input
     el.customSeqInput.addEventListener('input', function () {

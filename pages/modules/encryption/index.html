@@ -181,11 +181,11 @@
                 <label for="caesar-shift" class="form-label small fw-bold text-muted mb-0">Shift Key (k):</label>
                 <span class="badge bg-primary font-monospace fs-6" id="caesar-shift-val">3</span>
               </div>
-              <input type="range" class="form-range" id="caesar-shift" min="1" max="25" value="3" />
-              <div class="d-flex justify-content-between text-muted" style="font-size:0.7rem;">
-                <span>1 (A➔B)</span>
-                <span>13 (ROT13)</span>
-                <span>25 (A➔Z)</span>
+              <input type="number" class="form-control form-control-sm font-monospace" id="caesar-shift" min="1" max="25" value="3" step="1" placeholder="3" />
+              <div class="d-flex justify-content-between text-muted mt-1" style="font-size:0.7rem;">
+                <span>Min: 1 (A➔B)</span>
+                <span>ROT13: 13</span>
+                <span>Max: 25 (A➔Z)</span>
               </div>
             </div>
 

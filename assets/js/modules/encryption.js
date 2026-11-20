@@ -469,12 +469,6 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   /* ── Caesar Handlers ─────────────────────────────────────── */
-  if (caesarShift && caesarShiftVal) {
-    caesarShift.addEventListener('input', function () {
-      caesarShiftVal.textContent = this.value;
-    });
-  }
-
   function showCaesarError(msg) {
     if (caesarError) {
       caesarError.textContent = msg;
@@ -487,6 +481,37 @@ document.addEventListener('DOMContentLoaded', function () {
       caesarError.textContent = '';
       caesarError.style.display = 'none';
     }
+    if (caesarShift) caesarShift.classList.remove('is-invalid');
+  }
+
+  function validateCaesarShift() {
+    if (!caesarShift) return 3;
+    const raw = (caesarShift.value || '').trim();
+    if (raw === '' || isNaN(raw)) {
+      caesarShift.classList.add('is-invalid');
+      showCaesarError('Shift key is required and must be an integer between 1 and 25.');
+      return null;
+    }
+    const val = Number(raw);
+    if (!Number.isInteger(val) || val < 1 || val > 25) {
+      caesarShift.classList.add('is-invalid');
+      showCaesarError('Shift key must be an integer between 1 and 25.');
+      return null;
+    }
+    caesarShift.classList.remove('is-invalid');
+    if (caesarShiftVal) caesarShiftVal.textContent = val;
+    return val;
+  }
+
+  if (caesarShift) {
+    const handleShiftChange = function () {
+      const val = validateCaesarShift();
+      if (val !== null) {
+        hideCaesarError();
+      }
+    };
+    caesarShift.addEventListener('input', handleShiftChange);
+    caesarShift.addEventListener('change', handleShiftChange);
   }
 
   if (btnCaesarEncrypt) {
@@ -497,7 +522,8 @@ document.addEventListener('DOMContentLoaded', function () {
         showCaesarError('Please enter plaintext to encrypt.');
         return;
       }
-      const shift = parseInt(caesarShift.value, 10) || 3;
+      const shift = validateCaesarShift();
+      if (shift === null) return;
       const res = SMARTNET.Encryption.Caesar.encrypt(text, shift);
 
       caesarCiphertextOutput.textContent = res.ciphertext;
@@ -528,7 +554,8 @@ document.addEventListener('DOMContentLoaded', function () {
         showCaesarError('Please enter ciphertext in the input box to decrypt.');
         return;
       }
-      const shift = parseInt(caesarShift.value, 10) || 3;
+      const shift = validateCaesarShift();
+      if (shift === null) return;
       const res = SMARTNET.Encryption.Caesar.decrypt(text, shift);
 
       caesarCiphertextOutput.textContent = res.plaintext;
@@ -607,8 +634,11 @@ document.addEventListener('DOMContentLoaded', function () {
   if (btnCaesarReset) {
     btnCaesarReset.addEventListener('click', function () {
       caesarPlaintext.value = '';
-      caesarShift.value = 3;
-      caesarShiftVal.textContent = '3';
+      if (caesarShift) {
+        caesarShift.value = '3';
+        caesarShift.classList.remove('is-invalid');
+      }
+      if (caesarShiftVal) caesarShiftVal.textContent = '3';
       caesarOutputSection.style.display = 'none';
       hideCaesarError();
     });

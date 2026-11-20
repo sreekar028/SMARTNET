@@ -210,24 +210,27 @@
               </div>
             </div>
 
+            <!-- Validation Alert -->
+            <div class="alert alert-danger py-2 px-3 mb-3 d-none" id="sw-validation-alert" role="alert" style="font-size:0.8rem;"></div>
+
             <!-- Total Frames -->
             <div class="mb-3">
-              <div class="d-flex justify-content-between">
-                <label for="sw-total-frames" class="form-label" style="font-size:0.8rem;">Total Frames to Send</label>
-                <span class="text-primary fw-bold" id="sw-val-frames">8</span>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="sw-total-frames" class="form-label mb-0" style="font-size:0.8rem;">Total Frames to Send</label>
+                <span class="badge bg-light text-primary border font-monospace" id="sw-val-frames" style="font-size:0.75rem;">8</span>
               </div>
-              <input type="range" class="form-range" id="sw-total-frames" min="4" max="16" value="8" />
+              <input type="number" class="form-control form-control-sm font-monospace" id="sw-total-frames" min="4" max="16" value="8" step="1" placeholder="8" />
               <div class="form-text" style="font-size:0.72rem;color:var(--text-muted);">Frame count (4 to 16)</div>
             </div>
 
             <!-- Window Size W -->
             <div class="mb-3">
-              <div class="d-flex justify-content-between">
-                <label for="sw-window-size" class="form-label" style="font-size:0.8rem;">Sender Window Size (W)</label>
-                <span class="text-primary fw-bold" id="sw-val-window">4</span>
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label for="sw-window-size" class="form-label mb-0" style="font-size:0.8rem;">Sender Window Size (W)</label>
+                <span class="badge bg-light text-primary border font-monospace" id="sw-val-window" style="font-size:0.75rem;">4</span>
               </div>
-              <input type="range" class="form-range" id="sw-window-size" min="1" max="8" value="4" />
-              <div class="form-text" style="font-size:0.72rem;color:var(--text-muted);">Maximum unacknowledged frames in transit</div>
+              <input type="number" class="form-control form-control-sm font-monospace" id="sw-window-size" min="1" max="8" value="4" step="1" placeholder="4" />
+              <div class="form-text" style="font-size:0.72rem;color:var(--text-muted);">Maximum unacknowledged frames in transit (1 to 8, ≤ Total Frames)</div>
             </div>
 
             <!-- Simulation Speed -->

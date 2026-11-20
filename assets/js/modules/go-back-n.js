@@ -39,6 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
   const btnClearLog    = document.getElementById('btn-gbn-clear-log');
 
   const statusBadge    = document.getElementById('gbn-status-badge');
+  const validationAlert= document.getElementById('gbn-validation-alert');
   const frameTrack     = document.getElementById('gbn-frame-track');
   const flightLayer    = document.getElementById('gbn-flight-layer');
   const logBox         = document.getElementById('gbn-log-box');
@@ -76,6 +77,64 @@ document.addEventListener('DOMContentLoaded', function () {
   let startTime   = null;
   let currentRunId = 0; // Generation token to cancel stale animations on reset/re-run
 
+  /* ── 3.1 Validation ─────────────────────────────────────── */
+  function showValidationError(msg) {
+    if (validationAlert) {
+      validationAlert.textContent = msg;
+      validationAlert.classList.remove('d-none');
+    }
+    statusBadge.textContent = 'Validation Error';
+    statusBadge.className = 'sn-badge danger';
+    logEvent(`⚠️ <span class="text-danger">Validation Error: ${msg}</span>`);
+  }
+
+  function clearValidationError() {
+    if (validationAlert) {
+      validationAlert.textContent = '';
+      validationAlert.classList.add('d-none');
+    }
+    totalFramesIn.classList.remove('is-invalid');
+    windowSizeIn.classList.remove('is-invalid');
+  }
+
+  function validateInputs() {
+    clearValidationError();
+
+    const rawTf = totalFramesIn.value.trim();
+    if (rawTf === '' || isNaN(rawTf)) {
+      totalFramesIn.classList.add('is-invalid');
+      showValidationError('Total frames is required and must be an integer between 5 and 15.');
+      return false;
+    }
+    const tf = Number(rawTf);
+    if (!Number.isInteger(tf) || tf < 5 || tf > 15) {
+      totalFramesIn.classList.add('is-invalid');
+      showValidationError('Total frames must be an integer between 5 and 15.');
+      return false;
+    }
+
+    const rawWin = windowSizeIn.value.trim();
+    if (rawWin === '' || isNaN(rawWin)) {
+      windowSizeIn.classList.add('is-invalid');
+      showValidationError('Window size is required and must be an integer between 2 and 6.');
+      return false;
+    }
+    const win = Number(rawWin);
+    if (!Number.isInteger(win) || win < 2 || win > 6) {
+      windowSizeIn.classList.add('is-invalid');
+      showValidationError('Window size must be an integer between 2 and 6.');
+      return false;
+    }
+
+    if (win > tf) {
+      windowSizeIn.classList.add('is-invalid');
+      showValidationError(`Window size (${win}) cannot exceed total frames (${tf}).`);
+      return false;
+    }
+
+    return true;
+  }
+
   /* ── 4. Init & Render ───────────────────────────────────── */
   function initSimulation() {
     currentRunId++;
@@ -88,9 +147,10 @@ document.addEventListener('DOMContentLoaded', function () {
     isPaused = false;
     startTime = Date.now();
 
-    totalFrames = Math.max(1, parseInt(totalFramesIn.value, 10) || 10);
-    const parsedWin = parseInt(windowSizeIn.value, 10) || 4;
-    windowSize = Math.max(1, Math.min(parsedWin, totalFrames));
+    const tfParsed = parseInt(totalFramesIn.value, 10);
+    totalFrames = isNaN(tfParsed) ? 10 : Math.max(5, Math.min(15, tfParsed));
+    const parsedWin = parseInt(windowSizeIn.value, 10);
+    windowSize = isNaN(parsedWin) ? 4 : Math.max(2, Math.min(6, Math.min(parsedWin, totalFrames)));
 
     valFramesEl.textContent = totalFrames;
     valWindowEl.textContent = windowSize;
@@ -427,6 +487,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /* ── 6. Event Handlers ──────────────────────────────────── */
   btnStart.addEventListener('click', function () {
+    if (!validateInputs()) return;
+
     if (base >= totalFrames) {
       initSimulation();
     }
@@ -457,6 +519,8 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   btnStep.addEventListener('click', function () {
+    if (!validateInputs()) return;
+
     if (base >= totalFrames) {
       initSimulation();
     }
@@ -469,25 +533,33 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 
   btnReset.addEventListener('click', function () {
+    totalFramesIn.value = '10';
+    windowSizeIn.value = '4';
+    clearValidationError();
     initSimulation();
-    logEvent('Simulation reset.');
+    logEvent('Simulation reset to defaults (10 frames, window size 4).');
   });
 
   btnClearLog.addEventListener('click', function () {
     logBox.innerHTML = '';
   });
 
-  totalFramesIn.addEventListener('input', function () {
-    valFramesEl.textContent = this.value;
-    if (!isRunning) initSimulation();
-  });
+  function handleParamChange() {
+    if (validateInputs()) {
+      valFramesEl.textContent = totalFramesIn.value;
+      valWindowEl.textContent = windowSizeIn.value;
+      if (!isRunning) initSimulation();
+    }
+  }
 
-  windowSizeIn.addEventListener('input', function () {
-    valWindowEl.textContent = this.value;
-    if (!isRunning) initSimulation();
-  });
+  totalFramesIn.addEventListener('input', handleParamChange);
+  totalFramesIn.addEventListener('change', handleParamChange);
+  windowSizeIn.addEventListener('input', handleParamChange);
+  windowSizeIn.addEventListener('change', handleParamChange);
 
-  scenarioSelect.addEventListener('change', initSimulation);
+  scenarioSelect.addEventListener('change', function () {
+    if (validateInputs() && !isRunning) initSimulation();
+  });
 
   initSimulation();
 });
